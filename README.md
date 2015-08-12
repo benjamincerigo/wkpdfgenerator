@@ -1,9 +1,9 @@
-Basic socket and client made in c
+Basic socket and client made in cpp
 
 do:
+
 make
+./bin/server &
+./bin/client 
 
-./bin/server 9200 &
-./bin/client localhost 9200
-
-then input message and it will be returned
+A test message response will be shown
