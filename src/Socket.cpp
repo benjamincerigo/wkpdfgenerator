@@ -5,22 +5,26 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <syslog.h>
 
 
 
 Socket::Socket() :
   m_sock ( -1 )
 {
+  syslog( 7 , "scoket type type= %c is made",sockettype);
 
   memset ( &m_addr,
        0,
        sizeof ( m_addr ) );
-
 }
 
 Socket::~Socket()
 {
+  syslog( 7 , "Closing Socket type= %c",sockettype);
   if ( is_valid() )
+
+      syslog( 7 , "Closing Success on type %c m_sock: %d",sockettype, m_sock);
     ::close ( m_sock );
 }
 
@@ -29,6 +33,7 @@ bool Socket::create()
   m_sock = socket ( AF_INET,
             SOCK_STREAM,
             0 );
+  syslog( 7 , "Created for type %c m_sock %d",sockettype, m_sock);
 
   if ( ! is_valid() )
     return false;
@@ -98,6 +103,7 @@ bool Socket::accept ( Socket& new_socket ) const
   int addr_length = sizeof ( m_addr );
   new_socket.m_sock = ::accept ( m_sock, ( sockaddr * ) &m_addr, ( socklen_t * ) &addr_length );
 
+  syslog( 7 , "Accpet for type %c m_sock %d",new_socket.sockettype, new_socket.m_sock);
   if ( new_socket.m_sock <= 0 )
     return false;
   else
@@ -118,21 +124,24 @@ bool Socket::send ( const std::string s ) const
     }
 }
 
-
-int Socket::recv ( std::string& s ) const
+int Socket::general_recv(void *buf, int maxlen) const
 {
-  char buf [ MAXRECV + 1 ];
 
-  s = "";
+    syslog( 7 , "General_recev for %d", m_sock);
+    memset ( buf, 0,  maxlen );
+again:
+    int status = ::recv ( m_sock, buf, MAXRECV, 0 );
 
-  memset ( buf, 0, MAXRECV + 1 );
-
-  int status = ::recv ( m_sock, buf, MAXRECV, 0 );
+    syslog( 7 , "General_recev found %s", (char *) buf);
+    if (errno == EINTR)
+    goto again;
 
   if ( status == -1 )
     {
-      std::cout << "status == -1   errno == " << errno << "  in Socket::recv\n";
-      return 0;
+        // this is a exception that needs to be finxed
+      syslog( 7 , "status == -1   errno == %d  in Socket::recv type = %c", errno, sockettype);
+      errno = 0;
+      return -1;
     }
   else if ( status == 0 )
     {
@@ -140,10 +149,28 @@ int Socket::recv ( std::string& s ) const
     }
   else
     {
-      s = buf;
       return status;
     }
 }
+
+
+int Socket::recv ( std::string& s ) const
+{
+    char buf [ MAXRECV + 1 ];
+    s = "";
+    memset ( buf, 0, MAXRECV + 1 );
+    int status = general_recv ( buf , MAXRECV +1);
+    if ( status > 0)
+        s = buf;
+
+    return status;
+}
+
+int Socket::recv( void *buf , int maxlen ) const
+{
+    return general_recv( buf , maxlen );
+}
+
 
 
 
@@ -189,3 +216,7 @@ void Socket::set_non_blocking ( const bool b )
 
 }
 
+int Socket::getFd() const
+{
+    return m_sock;
+}

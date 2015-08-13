@@ -1,12 +1,12 @@
 #include "ServerSocket.h"
+#include "BufferedLineReader.h"
 #include "SocketException.h"
 #include <iostream>
-#include <string>
-
+#include <cstring> 
+#include <syslog.h>
 int main ()
 {
-  std::cout << "running....\n";
-
+  syslog( 7 , "Start of the server %s", "hi");
   try
     {
       // Create the socket
@@ -21,11 +21,27 @@ int main ()
 	  try
 	    {
 	      while ( true )
-		{
-		  std::string data;
-		  new_sock >> data;
-		  new_sock << data;
-		}
+            {
+              std::string data;
+              new_sock >> data;
+              char url[ 2000 ];
+              int n, cnt = 0;
+              BufferedLineReader blr = BufferedLineReader( new_sock );
+              while((n = blr.readLine( url , 2000 )) > 0 )
+              {
+                  std::string str = url;
+                  syslog( 7 , "Line found num: %d", n);
+                  syslog( 7 , "Line found str: %s", url);
+                  cnt++;
+                  if( strcmp( url , "ENDOFFILE" ) ){
+                      break;
+                  }
+              }
+              syslog( 7 , "Line found finished");
+              data = "EOF";
+              syslog( 7 , "the returned:%s", data.c_str());
+              new_sock << data;
+            }
 	    }
 	  catch ( SocketException& ) {}
 

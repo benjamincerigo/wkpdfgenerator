@@ -35,16 +35,21 @@ class Socket
   // Data Transimission
   bool send ( const std::string ) const;
   int recv ( std::string& ) const;
-
-
+  int recv (void *buf , int maxlen = MAXRECV + 1) const;
   void set_non_blocking ( const bool );
 
   bool is_valid() const { return m_sock != -1; }
+
+  int getFd() const;
 
  private:
 
   int m_sock;
   sockaddr_in m_addr;
+  int general_recv ( void *buf, int maxlen) const;
+
+ protected:
+        char sockettype;
 
 
 };

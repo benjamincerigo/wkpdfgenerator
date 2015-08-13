@@ -6,12 +6,12 @@
 #include "Socket.h"
 
 
-class ServerSocket : private Socket
+class ServerSocket : public Socket
 {
  public:
 
   ServerSocket ( int port );
-  ServerSocket (){};
+  ServerSocket ();
   virtual ~ServerSocket();
 
   const ServerSocket& operator << ( const std::string& ) const;
