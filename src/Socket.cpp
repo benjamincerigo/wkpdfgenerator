@@ -98,13 +98,11 @@ bool Socket::listen() const
 }
 
 
-bool Socket::accept ( Socket& new_socket ) const
+bool Socket::accept ( Socket *new_socket ) const
 {
   int addr_length = sizeof ( m_addr );
-  new_socket.m_sock = ::accept ( m_sock, ( sockaddr * ) &m_addr, ( socklen_t * ) &addr_length );
-
-  syslog( 7 , "Accpet for type %c m_sock %d",new_socket.sockettype, new_socket.m_sock);
-  if ( new_socket.m_sock <= 0 )
+  new_socket->m_sock = ::accept ( m_sock, ( sockaddr * ) &m_addr, ( socklen_t * ) &addr_length );
+  if ( new_socket->m_sock <= 0 )
     return false;
   else
     return true;
@@ -126,13 +124,9 @@ bool Socket::send ( const std::string s ) const
 
 int Socket::general_recv(void *buf, int maxlen) const
 {
-
-    syslog( 7 , "General_recev for %d", m_sock);
     memset ( buf, 0,  maxlen );
 again:
     int status = ::recv ( m_sock, buf, MAXRECV, 0 );
-
-    syslog( 7 , "General_recev found %s", (char *) buf);
     if (errno == EINTR)
     goto again;
 

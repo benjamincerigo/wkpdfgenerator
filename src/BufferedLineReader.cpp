@@ -20,7 +20,6 @@ BufferedLineReader::~BufferedLineReader ()
 bool BufferedLineReader::endOfLine( const char * ptr )
 {
 
-    syslog( 7, "checking : %c refernfound : %d ", *ptr, (int) returnfound);
     if( *ptr == '\n' && returnfound == true )
         return true; // Mean that we found the \r\n
     else if( *ptr =='\r' ){
@@ -65,18 +64,16 @@ int BufferedLineReader::internal_read( char *ptr )
 {
     if (unread_cnt <= 0) {
         
-        syslog( 7 , "Buf read of %d", socket.getFd());
-        if ( (unread_cnt = socket.recv( read_buf )) < 0) {
+        if ( (unread_cnt = socket.recv( read_buf )) < 0) 
+        {
             if( unread_cnt == -1 )
             {
                 return(-1);
             } else if (unread_cnt == 0)
                 return(0);
         }
-        syslog( 7 , "Buf readed %s", read_buf );
         read_ptr = read_buf;
     }
-
     unread_cnt--;
     *ptr = *read_ptr++;
     return(1);

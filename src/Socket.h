@@ -27,7 +27,7 @@ class Socket
   bool create();
   bool bind ( const int port );
   bool listen() const;
-  bool accept ( Socket& ) const;
+  bool accept ( Socket * ) const;
 
   // Client initialization
   bool connect ( const std::string host, const int port );

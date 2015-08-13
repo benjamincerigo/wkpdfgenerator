@@ -14,16 +14,17 @@ int main ()
 
       while ( true )
 	{
+      syslog( 7 , "%s", "started the while");
+
 
 	  ServerSocket new_sock;
-	  server.accept ( new_sock );
+	  server.accept ( &new_sock );
 
 	  try
 	    {
 	      while ( true )
             {
               std::string data;
-              new_sock >> data;
               char url[ 2000 ];
               int n, cnt = 0;
               BufferedLineReader blr = BufferedLineReader( new_sock );
@@ -34,6 +35,8 @@ int main ()
                   syslog( 7 , "Line found str: %s", url);
                   cnt++;
                   if( strcmp( url , "ENDOFFILE" ) ){
+                      
+                      syslog( 7 , "ENDOFFILEFOUND");
                       break;
                   }
               }
