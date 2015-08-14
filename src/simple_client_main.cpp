@@ -19,9 +19,8 @@ int main ()
         {
           client_socket << "this is the test line 1";
           client_socket << "this is the test line 2";
-/*          client_socket << "this is the test line 2\r\n";
+          client_socket << "this is the test line 2\r\n";
           client_socket << "ENDOFFILE\r\n";
-          */
 
 
           client_socket >> reply;
