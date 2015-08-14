@@ -1,9 +1,7 @@
 // SocketException class
 
 
-#include <string>
-#include <syslog.h>
-#include <stdio.h>
+#include "../lib/common.h"
 #include "SocketException.h"
 
 int SocketException::returnMessage( char * ret ,size_t limit)

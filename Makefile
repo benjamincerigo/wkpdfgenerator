@@ -5,10 +5,11 @@ CFLAGS=-c -Wall
 
 BIN = bin
 vpath %.cpp src
-SOURCE_FILES = Socket.cpp ServerSocket.cpp ClientSocket.cpp simple_server_main.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp
+vpath %.cpp lib
+SOURCE_FILES = Socket.cpp ServerSocket.cpp ClientSocket.cpp simple_server_main.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp signal.cpp error.cpp
 
-simple_server_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o bin/obj/simple_server_main.o bin/obj/SocketException.o
-simple_client_objects = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o
+simple_server_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o bin/obj/simple_server_main.o bin/obj/SocketException.o signal.o error.o
+simple_client_objects = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o error.o
 OBJ=$(BIN)/obj
 
 OBJECT_FILES     = $(SOURCE_FILES:%.cpp=$(OBJ)/%.o)

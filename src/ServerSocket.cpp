@@ -65,11 +65,7 @@ const ServerSocket& ServerSocket::operator >> ( std::string& s ) const
   return *this;
 }
 
-void ServerSocket::accept ( ServerSocket *sock )
+bool ServerSocket::accept ( ServerSocket *sock )
 {
-
-  if ( ! Socket::accept ( sock ) )
-    {
-      throw SocketException ( 1 , "Could not accept socket." );
-    }
+  return Socket::accept ( sock ); 
 }
