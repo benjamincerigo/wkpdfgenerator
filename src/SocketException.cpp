@@ -1,0 +1,14 @@
+// SocketException class
+
+
+#include <string>
+#include <syslog.h>
+#include <stdio.h>
+#include "SocketException.h"
+
+int SocketException::returnMessage( char * ret ,size_t limit)
+{
+    snprintf(ret, limit, "%d %s", m_c,  m_s.c_str());
+    syslog( 7 , "Exception return message %s", ret);
+    return sizeof(ret);
+}

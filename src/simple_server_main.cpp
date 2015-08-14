@@ -2,10 +2,13 @@
 #include "BufferedLineReader.h"
 #include "SocketException.h"
 #include <iostream>
+#include <stdio.h>
 #include <cstring> 
-#include <syslog.h>
+#include <syslog.h> 
+#include <cstdlib>
 int main ()
 {
+    pid_t pid;
   syslog( 7 , "Start of the server %s", "hi");
   try
     {
@@ -20,10 +23,11 @@ int main ()
 	  ServerSocket new_sock;
 	  server.accept ( &new_sock );
 
-	  try
-	    {
-	      while ( true )
+
+        if( (pid = fork()) == 0) {
+          try
             {
+              syslog( 7 , "%s", "started the while2");
               std::string data;
               char url[ 2000 ];
               int n, cnt = 0;
@@ -44,9 +48,17 @@ int main ()
               data = "EOF";
               syslog( 7 , "the returned:%s", data.c_str());
               new_sock << data;
+                exit(0);
             }
+          catch ( SocketException& e ) {
+              char ret[300];
+              e.returnMessage( ret , (size_t)300);
+              printf("%s", ret);
+              syslog( 7 , "Exception Caught %s", ret);
+              exit(0);
+          }
 	    }
-	  catch ( SocketException& ) {}
+        new_sock.~ServerSocket(); // Close the socket
 
 	}
     }

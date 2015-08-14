@@ -10,12 +10,12 @@ ClientSocket::ClientSocket ( std::string host, int port )
     Socket::sockettype = 'c';
   if ( ! Socket::create() )
     {
-      throw SocketException ( "Could not create client socket." );
+      throw SocketException ( 1, "Could not create client socket." );
     }
 
   if ( ! Socket::connect ( host, port ) )
     {
-      throw SocketException ( "Could not bind to port." );
+      throw SocketException ( 2, "Could not bind to port." );
     }
 
 }
@@ -25,7 +25,7 @@ const ClientSocket& ClientSocket::operator << ( const std::string& s ) const
 {
   if ( ! Socket::send ( s ) )
     {
-      throw SocketException ( "Could not write to socket." );
+      throw SocketException ( 3, "Could not write to socket." );
     }
 
   return *this;
@@ -35,10 +35,9 @@ const ClientSocket& ClientSocket::operator << ( const std::string& s ) const
 
 const ClientSocket& ClientSocket::operator >> ( std::string& s ) const
 {
-   std::cout << "Receive from the socket";
   if ( ! Socket::recv ( s ) )
     {
-      throw SocketException ( "Could not read from socket." );
+      throw SocketException ( 4,  "Could not read from socket." );
     }
 
   return *this;

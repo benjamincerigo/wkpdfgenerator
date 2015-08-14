@@ -6,6 +6,8 @@
 
 #include "BufferedLineReader.h"
 #include <syslog.h>
+#include "SocketException.h"
+
 BufferedLineReader::BufferedLineReader ( const Socket &s): unread_cnt(0) 
 {
     socket = s;
@@ -56,6 +58,7 @@ int BufferedLineReader::readLine ( char * vptr, int maxlen)
     if ( n < 0)
     {
         //need to throw an exception here
+        throw SocketException( 413, "Entity Too Large");
     }
     return (n);
 }
