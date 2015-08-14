@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <stdio.h>
+#include "../src/SocketTimeOut.h"
 
 #ifndef MAXLINE
 #define MAXLINE 2000

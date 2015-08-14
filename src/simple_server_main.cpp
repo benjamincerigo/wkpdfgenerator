@@ -66,6 +66,11 @@ int main ()
                 syslog( 7 , "Exception Caught %s", ret);
                 exit(0);
             }
+            catch ( SocketTimeOut& e ) {
+                syslog( 7 , "Exception Caught %s", e.message());
+                new_sock.~ServerSocket();
+                exit(0);
+            }
             /* Child Socket is closed and Fork is exited */
           }
           new_sock.~ServerSocket(); // Close the socket in Parent so that waiting for an new request

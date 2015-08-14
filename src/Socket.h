@@ -45,9 +45,12 @@ class Socket
   int m_sock;
   sockaddr_in m_addr;
   int general_recv ( void *buf, int maxlen) const;
+  void setOptions();
 
  protected:
-        char sockettype;
+    char sockettype;
+
+
 
 
 };

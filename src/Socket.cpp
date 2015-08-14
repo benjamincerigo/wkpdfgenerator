@@ -24,6 +24,17 @@ Socket::~Socket()
     ::close ( m_sock );
 }
 
+void Socket::setOptions()
+{
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    int st = setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    syslog( 7 , "set: %d", st);
+    st  = setsockopt(m_sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+    syslog( 7 , "set: %d", st);
+}
+
 bool Socket::create()
 {
   m_sock = socket ( AF_INET,
@@ -99,17 +110,30 @@ bool Socket::accept ( Socket *new_socket ) const
   int addr_length = sizeof ( m_addr );
   new_socket->m_sock = ::accept ( m_sock, ( sockaddr * ) &m_addr, ( socklen_t * ) &addr_length );
   if ( new_socket->m_sock <= 0 )
-    return false;
+  {
+      return false;
+  }
   else
+  {
+    new_socket->setOptions();
     return true;
+  }
 }
 
 
 bool Socket::send ( const std::string s ) const
 {
+    syslog( 7 , "%s", "start of send");
   int status = ::send ( m_sock, s.c_str(), s.size(), MSG_NOSIGNAL );
+    syslog( 7 , "send with st: %d", status);
   if ( status == -1 )
     {
+        syslog( 7 , "Error %d", errno);
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            syslog( 7 , "Throw Exception %d", errno);
+
+            throw SocketTimeOut();
+        }
       return false;
     }
   else
@@ -121,15 +145,20 @@ bool Socket::send ( const std::string s ) const
 int Socket::general_recv(void *buf, int maxlen) const
 {
     memset ( buf, 0,  maxlen );
-again:
+    syslog( 7 , "%s", "start of recv");
     int status = ::recv ( m_sock, buf, MAXRECV, 0 );
-    if (errno == EINTR)
-    goto again;
+    syslog( 7 , "recev with st: %d", status);
 
   if ( status == -1 )
     {
+        syslog( 7 , "Error %d", errno);
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            syslog( 7 , "Throw Exception %d", errno);
+
+            throw SocketTimeOut();
+        }
         // this is a exception that needs to be finxed
-      syslog( 7 , "status == -1   errno == %d  in Socket::recv type = %c", errno, sockettype);
+      
       errno = 0;
       return -1;
     }

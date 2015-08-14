@@ -7,3 +7,4 @@ make
 ./bin/client 
 
 A test message response will be shown
+ps -a  -o pid,ppid,tty,stat,args,wchan
