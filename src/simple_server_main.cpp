@@ -5,6 +5,7 @@
 #include <cstring> 
 #include "Url.h" 
 #include "../lib/common.h"
+#include "pdf.h"
 
 void sig_chld(int signo);
 int main ()
@@ -42,6 +43,7 @@ int main ()
                     char linecheck[ 2000 ];
                     char url[ 2000 ];
                     int n, cnt = 0;
+                    const unsigned char * pdfdata;
                     BufferedLineReader blr = BufferedLineReader( new_sock );
                     while((n = blr.readLine( linecheck , 2000 )) > 0 )
                     {
@@ -62,6 +64,8 @@ int main ()
                     if( checkUrl( url , 2000 ) == true ){
                         // Print out the pdf
                         data = "correct";
+
+                        printpdf( url, &pdfdata );
                     } else {
                         // save and return the error
                         data = "incorrect";

@@ -17,10 +17,7 @@ int main ()
 
         try
         {
-          client_socket << "this is the test line 1";
-          client_socket << "this is the test line 1";
-          client_socket << "this is the test line 1\r\n";
-          client_socket << "https://www.equidam.com\r\n";
+          client_socket << "https://secure.equidam.dev/report/index.php\r\n";
           client_socket << "ENDOFFILE\r\n";
 
 

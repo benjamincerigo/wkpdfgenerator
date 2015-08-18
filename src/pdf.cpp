@@ -46,8 +46,8 @@ void warning(wkhtmltopdf_converter * c, const char * msg) {
 	fprintf(stderr, "Warning: %s\n", msg);
 }
 
-/* Main method convert pdf */
-int main() {
+/* Print the pdf*/
+bool printpdf(char * url, const unsigned char ** d ) {
 	wkhtmltopdf_global_settings * gs;
 	wkhtmltopdf_object_settings * os;
 	wkhtmltopdf_converter * c;
@@ -72,7 +72,7 @@ int main() {
 	 */
 	os = wkhtmltopdf_create_object_settings();
 	/* We want to convert to convert the qstring documentation page */
-	wkhtmltopdf_set_object_setting(os, "page", "http://www.google.com");
+	wkhtmltopdf_set_object_setting(os, "page", url);
 
 	/* Create the actual converter object used to convert the pages */
 	c = wkhtmltopdf_create_converter(gs);
@@ -109,5 +109,5 @@ int main() {
 	/* We will no longer be needing wkhtmltopdf funcionality */
 	wkhtmltopdf_deinit();
 
-	return 0;
+	return true;
 }
