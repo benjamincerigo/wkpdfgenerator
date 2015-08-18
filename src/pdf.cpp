@@ -65,6 +65,7 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	wkhtmltopdf_set_global_setting(gs, "out", "test.pdf");
 
 	wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
+	wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
 	/*
 	 * Create a input object settings object that is used to store settings
 	 * related to a input object, note again that control of this object is parsed to
@@ -73,6 +74,8 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	os = wkhtmltopdf_create_object_settings();
 	/* We want to convert to convert the qstring documentation page */
 	wkhtmltopdf_set_object_setting(os, "page", url);
+	wkhtmltopdf_set_object_setting(os, "load.jsdelay", "10000");
+	wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false");
 
 	/* Create the actual converter object used to convert the pages */
 	c = wkhtmltopdf_create_converter(gs);
