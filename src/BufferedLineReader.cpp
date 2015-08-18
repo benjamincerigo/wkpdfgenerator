@@ -23,7 +23,10 @@ bool BufferedLineReader::endOfLine( const char * ptr )
 {
 
     if( *ptr == '\n' && returnfound == true )
+    {
+        returnfound = false;
         return true; // Mean that we found the \r\n
+    }
     else if( *ptr =='\r' ){
         returnfound = true;
         return false;
@@ -38,9 +41,8 @@ int BufferedLineReader::readLine ( char * vptr, int maxlen)
     ssize_t n, rc;
     char c;
     char *ptr;
-
-
-    syslog( 7 , "%s","started the readline");
+    // Reset the last
+    returnfound = false; // inportant as will carry from the last
     ptr = vptr;
     for (n = 1; n < maxlen; n++) {
         if ( (rc = internal_read(&c)) == 1) {
@@ -55,6 +57,13 @@ int BufferedLineReader::readLine ( char * vptr, int maxlen)
     }
 
     *ptr = 0;   /* null terminate like fgets() */
+    if( removenewline == true )
+    {
+        /* Remove the new line charateres form the end */
+        ptr--;
+        *ptr-- = 0;
+        *ptr = 0;
+    }
     if( n == maxlen )
         return -1;
     if ( n < 0)
@@ -82,4 +91,11 @@ int BufferedLineReader::internal_read( char *ptr )
     unread_cnt--;
     *ptr = *read_ptr++;
     return(1);
+}
+void BufferedLineReader::helplog( int pos )
+{
+    syslog( 7 , "pos %d", pos);
+    syslog( 7 , "return found %d", returnfound);
+    syslog( 7 , "unread_cnt %d", unread_cnt);
+    syslog( 7 , "read_ptr %s", read_ptr);
 }

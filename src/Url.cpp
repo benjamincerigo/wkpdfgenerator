@@ -1,7 +1,6 @@
 /* Url check funcitonallity */ 
 #include "../lib/common.h"
-
-bool startsWith( const char * url , const char * com, int len);
+#include "Url.h"
 
 const int numofchecks = 5;
  
@@ -23,8 +22,6 @@ bool checkUrl( char * url, int len )
 
 bool startsWith( const char * url , const char * com , int len)
 {
-    int i;
-    i = strncmp(com, url, strlen(com));
     return strncmp(com, url, strlen(com)) == 0;
 }
 

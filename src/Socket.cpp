@@ -150,6 +150,7 @@ int Socket::general_recv(void *buf, int maxlen) const
     syslog( 7 , "recev with st: %d", status);
 
   if ( status == -1 )
+  {
         syslog( 7 , "Error %d", errno);
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             syslog( 7 , "Throw Exception %d", errno);

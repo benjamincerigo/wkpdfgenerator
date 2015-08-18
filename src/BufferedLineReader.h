@@ -4,6 +4,8 @@
  */
 #include "Socket.h"
 
+const bool removenewline = true;
+
 class BufferedLineReader
 {
     private:
@@ -13,6 +15,7 @@ class BufferedLineReader
         char * read_ptr;  // This is the pointer that will transfer from the readbuf to the given array
         char read_buf[ MAXRECV + 1 ]; // Read buf to holder the current values
         int internal_read( char *ptr);
+        void helplog( int pos);
         bool endOfLine( const char *ptr);
     public:
       BufferedLineReader(const Socket &s);

@@ -39,22 +39,25 @@ int main ()
                     server.~ServerSocket(); // close the listening socket for the child
                     syslog( 7 , "%s", "started the while2");
                     std::string data;
+                    char linecheck[ 2000 ];
                     char url[ 2000 ];
                     int n, cnt = 0;
                     BufferedLineReader blr = BufferedLineReader( new_sock );
-                    while((n = blr.readLine( url , 2000 )) > 0 )
+                    while((n = blr.readLine( linecheck , 2000 )) > 0 )
                     {
-                        std::string str = url;
                         syslog( 7 , "Line found num: %d", n);
-                        syslog( 7 , "Line found str: %s", url);
+                        syslog( 7 , "Line found str: %s", linecheck);
                         cnt++;
-                        if( strcmp( url , "ENDOFFILE" ) ){
+                        if( startsWith( linecheck , "ENDOFFILE" , 2000) ){
 
                             syslog( 7 , "ENDOFFILEFOUND");
                             break;
+                        } else {
+                            strncpy( url, linecheck , 2000);
                         }
                     }
                     syslog( 7 , "Line found finished");
+                    syslog( 7 , "URL: %s", url);
 
                     if( checkUrl( url , 2000 ) == true ){
                         // Print out the pdf
