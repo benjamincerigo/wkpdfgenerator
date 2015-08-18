@@ -1,11 +1,6 @@
 /*
  * Url Interface
  */
+#include "../lib/common.h"
 
-#include <cstring>
-
-class Url
-{
-    private
-        std::string url
-
+bool checkUrl( char * url , int len );

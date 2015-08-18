@@ -39,6 +39,8 @@ int BufferedLineReader::readLine ( char * vptr, int maxlen)
     char c;
     char *ptr;
 
+
+    syslog( 7 , "%s","started the readline");
     ptr = vptr;
     for (n = 1; n < maxlen; n++) {
         if ( (rc = internal_read(&c)) == 1) {

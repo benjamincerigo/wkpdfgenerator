@@ -6,9 +6,9 @@ CFLAGS=-c -Wall
 BIN = bin
 vpath %.cpp src
 vpath %.cpp lib
-SOURCE_FILES = Socket.cpp ServerSocket.cpp ClientSocket.cpp simple_server_main.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp signal.cpp error.cpp
+SOURCE_FILES = Socket.cpp ServerSocket.cpp ClientSocket.cpp simple_server_main.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp signal.cpp error.cpp Url.cpp
 
-simple_server_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o bin/obj/simple_server_main.o bin/obj/SocketException.o signal.o error.o
+simple_server_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o bin/obj/simple_server_main.o bin/obj/SocketException.o bin/obj/signal.o bin/obj/error.o bin/obj/Url.o
 simple_client_objects = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o error.o
 OBJ=$(BIN)/obj
 
