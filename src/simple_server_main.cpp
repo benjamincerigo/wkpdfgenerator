@@ -1,88 +1,101 @@
 #include "ServerSocket.h"
 #include "BufferedLineReader.h"
-#include "SocketException.h"
 #include <stdio.h>
 #include <cstring> 
 #include "Url.h" 
 #include "../lib/common.h"
 #include "pdf.h"
 
+const int bufsize = 2000;
+
 void sig_chld(int signo);
+
 int main ()
 {
     pid_t pid;
-    syslog( 7 , "Start of the server %s", "hi");
+    // Logg starting of the server
+    log_info("PDF wkhtmltopdf started");
     try
     {
         // Create the socket
         ServerSocket server ( 30000 );
-        Signal(SIGCHLD, sig_chld); // kill the zombie forks
-
+        Signal(SIGCHLD, sig_chld); // kill the zombie children that are left after they exit
         while ( true )
         {
-            syslog( 7 , "%s", "started the while");
-
+            /* New socket created for each connection */
             ServerSocket new_sock;
-            if( !(server.accept ( &new_sock )) ){ // Blocking so will stop with
+            if( !(server.accept ( &new_sock )) ){ // Blocking so will stop while and wait for an request
                 if( errno == EINTR )
                     // This is a signal interupt
-                    continue; // Return to the for
+                    continue; // Return to the while so wait for the accept
                 else
                 {
-                    // must log the execption
+                    // must log the on the accept
+                    err_sys("Error in the accept of the Server"); 
+                    continue;
                 }
             }
 
-            if( (pid = fork()) == 0) { /* Create the fork to prcess the request*/
+            if( (pid = fork()) == 0) { /* Create the fork to process the request*/
                 /* CHILD ONLY */
                 try
                 {
-                    server.~ServerSocket(); // close the listening socket for the child
-                    syslog( 7 , "%s", "started the while2");
-                    std::string data;
-                    char linecheck[ 2000 ];
-                    char url[ 2000 ];
+                    log_info("New child prcess started: %d", getpid());
+                    server.~ServerSocket(); // close the listening socket for the child because it does not need it
+
+                    std::string data; // Return data
+                    char linecheck[ bufsize ]; // line buffer
+                    char url[ bufsize ]; // url
                     int n, cnt = 0;
                     const unsigned char * pdfdata;
+                    
+                    
+                    /* Read each line 
+                     * Lines are read until ENDOFFILE is found
+                     * Can also exit on exception of no end of file or timeout
+                     *
+                     * LAST line found will be url
+                     * 
+                     */
                     BufferedLineReader blr = BufferedLineReader( new_sock );
-                    while((n = blr.readLine( linecheck , 2000 )) > 0 )
+                    while((n = blr.readLine( linecheck , bufsize )) > 0 )
                     {
-                        syslog( 7 , "Line found num: %d", n);
-                        syslog( 7 , "Line found str: %s", linecheck);
                         cnt++;
+                        // Looking for ENDOFFILE
                         if( startsWith( linecheck , "ENDOFFILE" , 2000) ){
-
-                            syslog( 7 , "ENDOFFILEFOUND");
+                            log_info("EOF recieved for pid: %d", getpid());
                             break;
                         } else {
+                            // Copy the line into url
                             strncpy( url, linecheck , 2000);
                         }
                     }
-                    syslog( 7 , "Line found finished");
-                    syslog( 7 , "URL: %s", url);
-
+                    // Check the url to see if it asecaable
+                    log_info("Url found for pid: %d , url %s", getpid(), url);
                     if( checkUrl( url , 2000 ) == true ){
-                        // Print out the pdf
-                        data = "correct";
-
-                        printpdf( url, &pdfdata );
+                        data = "200 Success";
+                        if(!(printpdf( url, &pdfdata )))
+                        {
+                            data = "500 Internal Server Error";
+                        }
                     } else {
                         // save and return the error
-                        data = "incorrect";
+                        log_notice("NOTICE Url not authorsied pid: %d , url %s", getpid(), url);
+                        data = "401 Unauthorized";
                     }
                     new_sock << data;
-                    exit(0);
-                }
-                catch ( SocketException& e ) {
+                    log_info("Success for child process: %d", getpid());
+                    exit(0); // exit the child once the return is sent back
+                } catch ( SocketException &e ) {
+                    // Socketexception of the child should be loged
                     char ret[300];
                     e.returnMessage( ret , (size_t)300);
-                    printf("%s", ret);
-                    syslog( 7 , "Exception Caught %s", ret);
+                    err_sys( "Socekt Error with messages: %s for pid: %d", ret, getpid() );
                     exit(0);
                 }
                 catch ( SocketTimeOut& e ) {
-                    syslog( 7 , "Exception Caught %s", e.message());
-                    new_sock.~ServerSocket();
+                    // Socket time out Needs to be logged
+                    err_sys( "408 Request Timeout for pid: %d", getpid()  );
                     exit(0);
                 }
                 /* Child Socket is closed and Fork is exited */
@@ -92,7 +105,10 @@ int main ()
     }
     catch ( SocketException& e )
     {
-        std::cout << "Exception was caught:" << e.description() << "\nExiting.\n";
+        // Log the Exceptions of the Server This is a bad excetion that should email us as the server is down
+        char ret[1000];
+        e.returnMessage( ret , (size_t)1000);
+        err_sys( "Socket Error with messages: %s for pid: %d", ret, getpid() );
     }
     return 0;
 }
@@ -105,7 +121,8 @@ sig_chld(int signo)
 {
     pid_t	pid;
     int		stat;
-
     while ( (pid = waitpid(-1, &stat, WNOHANG)) > 0)
+        log_info("Child Process terminated: %d", pid);
+
     return;
 }

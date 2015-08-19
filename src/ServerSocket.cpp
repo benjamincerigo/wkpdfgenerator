@@ -9,25 +9,25 @@
 ServerSocket::ServerSocket()  
 {
 
-  Socket::sockettype = 's';
+    Socket::sockettype = 's';
 }
 
 ServerSocket::ServerSocket ( int port )  
 {
-  Socket::sockettype = 's';
-  if ( ! Socket::create() )
+    Socket::sockettype = 's';
+    if ( ! Socket::create() )
     {
-      throw SocketException ( 1, "Could not create server socket." );
+        throw SocketException ( 500, "Could not create server socket." );
     }
 
-  if ( ! Socket::bind ( port ) )
+    if ( ! Socket::bind ( port ) )
     {
-      throw SocketException ( 1 , "Could not bind to port." );
+        throw SocketException ( 500 , "Could not bind to port." );
     }
 
-  if ( ! Socket::listen() )
+    if ( ! Socket::listen() )
     {
-      throw SocketException ( 1 , "Could not listen to socket." );
+        throw SocketException ( 500 , "Could not listen to socket." );
     }
 
 }
@@ -39,33 +39,27 @@ ServerSocket::~ServerSocket()
 
 const ServerSocket& ServerSocket::operator << ( const std::string& s ) const
 {
-  syslog( 7 , "ServerSocket sending %s", s.c_str());
-  if ( ! Socket::send ( s ) )
+    if ( ! Socket::send ( s ) )
     {
         char c[300];
-    snprintf( c, 300, "%s %d", "Could not write to socket." , errno);
-        
-      throw SocketException ( 1 , c);
+        snprintf( c, 300, "%s %d", "Could not write to socket." , errno);
+        throw SocketException ( 500 , c);
     }
-  syslog( 7 , "ServerSocket sent %s", s.c_str());
-
-  return *this;
+    return *this;
 
 }
 
 
 const ServerSocket& ServerSocket::operator >> ( std::string& s ) const
 {
-  if ( ! Socket::recv ( s ) )
+    if ( ! Socket::recv ( s ) )
     {
-      throw SocketException ( 1 , "Could not read from socket." );
+        throw SocketException ( 500 , "Could not read from socket." );
     }
-
-
-  return *this;
+    return *this;
 }
 
 bool ServerSocket::accept ( ServerSocket *sock )
 {
-  return Socket::accept ( sock ); 
+    return Socket::accept ( sock ); 
 }

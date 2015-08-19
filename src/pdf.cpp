@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <wkhtmltox/pdf.h>
+#include "../lib/common.h"
 
 /* Print out loading progress information */
 void progress_changed(wkhtmltopdf_converter * c, int p) {
@@ -48,6 +49,8 @@ void warning(wkhtmltopdf_converter * c, const char * msg) {
 
 /* Print the pdf*/
 bool printpdf(char * url, const unsigned char ** d ) {
+	bool statusbool = true;
+	log_info("Pdf print started with url: %s", url);
 	wkhtmltopdf_global_settings * gs;
 	wkhtmltopdf_object_settings * os;
 	wkhtmltopdf_converter * c;
@@ -101,10 +104,12 @@ bool printpdf(char * url, const unsigned char ** d ) {
 
 	/* Perform the actual convertion */
 	if (!wkhtmltopdf_convert(c))
-		fprintf(stderr, "Convertion failed!");
-
-	/* Output possible http error code encountered */
-	printf("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
+	{
+		err_sys("ERROR PDF Converstionafail for url: %s", url);
+		/* Output possible http error code encountered */
+		err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
+		statusbool = false;
+	}
 
 	/* Destroy the converter object since we are done with it */
 	wkhtmltopdf_destroy_converter(c);
@@ -112,5 +117,5 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	/* We will no longer be needing wkhtmltopdf funcionality */
 	wkhtmltopdf_deinit();
 
-	return true;
+	return statusbool;
 }

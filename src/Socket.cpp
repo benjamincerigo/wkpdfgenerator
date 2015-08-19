@@ -3,13 +3,9 @@
 #include "Socket.h"
 #include "../lib/common.h"
 
-
-
 Socket::Socket() :
   m_sock ( -1 )
 {
-  syslog( 7 , "scoket type type= %c is made",sockettype);
-
   memset ( &m_addr,
        0,
        sizeof ( m_addr ) );
@@ -17,22 +13,19 @@ Socket::Socket() :
 
 Socket::~Socket()
 {
-  syslog( 7 , "Closing Socket type= %c",sockettype);
   if ( is_valid() )
-
-      syslog( 7 , "Closing Success on type %c m_sock: %d",sockettype, m_sock);
     ::close ( m_sock );
 }
 
-void Socket::setOptions()
+int Socket::setOptions()
 {
+    // Set the time out for the recv and send
     struct timeval tv;
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     int st = setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    syslog( 7 , "set: %d", st);
     st  = setsockopt(m_sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-    syslog( 7 , "set: %d", st);
+    return st;
 }
 
 bool Socket::create()
@@ -40,12 +33,8 @@ bool Socket::create()
   m_sock = socket ( AF_INET,
             SOCK_STREAM,
             0 );
-  syslog( 7 , "Created for type %c m_sock %d",sockettype, m_sock);
-
   if ( ! is_valid() )
     return false;
-
-
   // TIME_WAIT - argh
   int on = 1;
   if ( setsockopt ( m_sock, SOL_SOCKET, SO_REUSEADDR, ( const char* ) &on, sizeof ( on ) ) == -1 )
@@ -60,14 +49,10 @@ bool Socket::create()
 
 bool Socket::bind ( const int port )
 {
-
   if ( ! is_valid() )
     {
       return false;
     }
-
-
-
   m_addr.sin_family = AF_INET;
   m_addr.sin_addr.s_addr = INADDR_ANY;
   m_addr.sin_port = htons ( port );
@@ -75,8 +60,6 @@ bool Socket::bind ( const int port )
   int bind_return = ::bind ( m_sock,
                  ( struct sockaddr * ) &m_addr,
                  sizeof ( m_addr ) );
-
-
   if ( bind_return == -1 )
     {
       return false;
@@ -85,25 +68,19 @@ bool Socket::bind ( const int port )
   return true;
 }
 
-
 bool Socket::listen() const
 {
   if ( ! is_valid() )
     {
       return false;
     }
-
   int listen_return = ::listen ( m_sock, MAXCONNECTIONS );
-
-
   if ( listen_return == -1 )
     {
       return false;
     }
-
   return true;
 }
-
 
 bool Socket::accept ( Socket *new_socket ) const
 {
@@ -123,15 +100,10 @@ bool Socket::accept ( Socket *new_socket ) const
 
 bool Socket::send ( const std::string s ) const
 {
-    syslog( 7 , "%s", "start of send");
   int status = ::send ( m_sock, s.c_str(), s.size(), MSG_NOSIGNAL );
-    syslog( 7 , "send with st: %d", status);
   if ( status == -1 )
     {
-        syslog( 7 , "Error %d", errno);
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            syslog( 7 , "Throw Exception %d", errno);
-
             throw SocketTimeOut();
         }
       return false;
@@ -145,20 +117,13 @@ bool Socket::send ( const std::string s ) const
 int Socket::general_recv(void *buf, int maxlen) const
 {
     memset ( buf, 0,  maxlen );
-    syslog( 7 , "%s", "start of recv");
     int status = ::recv ( m_sock, buf, MAXRECV, 0 );
-    syslog( 7 , "recev with st: %d", status);
-
   if ( status == -1 )
   {
-        syslog( 7 , "Error %d", errno);
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            syslog( 7 , "Throw Exception %d", errno);
-
+            send( "408 Timeout");
             throw SocketTimeOut();
         }
-        // this is a exception that needs to be finxed
-      
       errno = 0;
       return -1;
     }
@@ -172,7 +137,6 @@ int Socket::general_recv(void *buf, int maxlen) const
     }
 }
 
-
 int Socket::recv ( std::string& s ) const
 {
     char buf [ MAXRECV + 1 ];
@@ -181,7 +145,6 @@ int Socket::recv ( std::string& s ) const
     int status = general_recv ( buf , MAXRECV +1);
     if ( status > 0)
         s = buf;
-
     return status;
 }
 
@@ -190,13 +153,9 @@ int Socket::recv( void *buf , int maxlen ) const
     return general_recv( buf , maxlen );
 }
 
-
-
-
 bool Socket::connect ( const std::string host, const int port )
 {
   if ( ! is_valid() ) return false;
-
   m_addr.sin_family = AF_INET;
   m_addr.sin_port = htons ( port );
 
@@ -214,12 +173,9 @@ bool Socket::connect ( const std::string host, const int port )
 
 void Socket::set_non_blocking ( const bool b )
 {
-
   int opts;
-
   opts = fcntl ( m_sock,
          F_GETFL );
-
   if ( opts < 0 )
     {
       return;

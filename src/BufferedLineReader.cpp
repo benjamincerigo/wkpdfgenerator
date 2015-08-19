@@ -68,7 +68,7 @@ int BufferedLineReader::readLine ( char * vptr, int maxlen)
         return -1;
     if ( n < 0)
     {
-        //need to throw an exception here
+        // The line is more then the given buffer size
         throw SocketException( 413, "Entity Too Large");
     }
     return (n);

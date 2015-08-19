@@ -10,6 +10,8 @@
 #include <syslog.h>
 #include <stdio.h>
 #include "../src/SocketTimeOut.h"
+#include "../src/SocketException.h"
+#include "config.h"
 
 #ifndef MAXLINE
 #define MAXLINE 2000
@@ -28,6 +30,9 @@ void     err_msg(const char *, ...);
 void     err_quit(const char *, ...);
 void     err_ret(const char *, ...);
 void     err_sys(const char *, ...);
+
+void     log_info(const char *, ...);
+void     log_notice(const char *, ...);
 
 typedef void Sigfunc(int);
 Sigfunc *Signal(int signo, Sigfunc *func);

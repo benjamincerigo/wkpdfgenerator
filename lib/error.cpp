@@ -3,7 +3,7 @@
 #include	<syslog.h>		/* for syslog() */
 #include	"common.h"
 
-int		daemon_proc;		/* set nonzero by daemon_init() */
+int		daemon_proc = 1;		/* set nonzero by daemon_init() */
 
 static void	err_doit(int, int, const char *, va_list);
 
@@ -20,6 +20,26 @@ err_ret(const char *fmt, ...)
 	va_end(ap);
 	return;
 }
+void
+log_info(const char *fmt, ...)
+{
+	va_list		ap;
+
+	va_start(ap, fmt);
+	err_doit(1, LOG_INFO, fmt, ap);
+	va_end(ap);
+	return;
+}
+void
+log_notice(const char *fmt, ...)
+{
+	va_list		ap;
+
+	va_start(ap, fmt);
+	err_doit(1, LOG_NOTICE, fmt, ap);
+	va_end(ap);
+	return;
+}
 
 /* Fatal error related to system call
  * Print message and terminate */
@@ -32,7 +52,7 @@ err_sys(const char *fmt, ...)
 	va_start(ap, fmt);
 	err_doit(1, LOG_ERR, fmt, ap);
 	va_end(ap);
-	exit(1);
+	return;
 }
 
 /* Fatal error related to system call
@@ -95,7 +115,7 @@ err_doit(int errnoflag, int level, const char *fmt, va_list ap)
 #endif
 	n = strlen(buf);
 	if (errnoflag)
-		snprintf(buf + n, MAXLINE - n, ": %s", strerror(errno_save));
+		snprintf(buf + n, MAXLINE - n, " errno: %s", strerror(errno_save));
 	strcat(buf, "\n");
 
 	if (daemon_proc) {
