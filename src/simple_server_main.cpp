@@ -73,10 +73,16 @@ int main ()
                     // Check the url to see if it asecaable
                     log_info("Url found for pid: %d , url %s", getpid(), url);
                     if( checkUrl( url , 2000 ) == true ){
+                        int len;
                         data = "200 Success";
-                        if(!(printpdf( url, &pdfdata )))
+                        len = printpdf( url, &pdfdata );
+                        log_info("len = %d", len);
+                        if( len <= 0)
                         {
                             data = "500 Internal Server Error";
+                        } else {
+                            log_info("sending the buffer");
+                             new_sock.send( &pdfdata, len );
                         }
                     } else {
                         // save and return the error

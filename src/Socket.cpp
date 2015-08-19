@@ -113,6 +113,22 @@ bool Socket::send ( const std::string s ) const
       return true;
     }
 }
+bool Socket::send ( const unsigned char ** d, int len) const
+{
+    log_info("sending the buffer: %p, len: %d ", d, len);
+  int status = ::send ( m_sock, *d,  len , MSG_NOSIGNAL );
+  if ( status == -1 )
+    {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            throw SocketTimeOut();
+        }
+      return false;
+    }
+  else
+    {
+      return true;
+    }
+}
 
 int Socket::general_recv(void *buf, int maxlen) const
 {

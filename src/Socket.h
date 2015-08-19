@@ -28,6 +28,7 @@ class Socket
 
         // Data Transimission
         bool send ( const std::string ) const;
+        bool send( const unsigned char ** d, int len) const;
         int recv ( std::string& ) const;
         int recv (void *buf , int maxlen = MAXRECV + 1) const;
         void set_non_blocking ( const bool );

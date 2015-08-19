@@ -15,6 +15,7 @@ class ServerSocket : public Socket
   virtual ~ServerSocket();
 
   const ServerSocket& operator << ( const std::string& ) const;
+  const ServerSocket& send( const unsigned char ** d, int len) const;
   const ServerSocket& operator >> ( std::string& ) const;
 
   bool accept ( ServerSocket* );

@@ -49,6 +49,18 @@ const ServerSocket& ServerSocket::operator << ( const std::string& s ) const
 
 }
 
+const ServerSocket& ServerSocket::send ( const unsigned char ** d, int len) const
+{
+    if ( ! Socket::send ( d, len  ) )
+    {
+        char c[300];
+        snprintf( c, 300, "%s %d", "Could not write to socket." , errno);
+        throw SocketException ( 500 , c);
+    }
+    return *this;
+
+}
+
 
 const ServerSocket& ServerSocket::operator >> ( std::string& s ) const
 {

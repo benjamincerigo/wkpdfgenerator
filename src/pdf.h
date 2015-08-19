@@ -1,1 +1,1 @@
-bool printpdf( char * url, const unsigned char ** d);
+int printpdf( char * url, const unsigned char ** d);

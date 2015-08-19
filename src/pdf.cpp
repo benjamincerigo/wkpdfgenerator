@@ -48,8 +48,8 @@ void warning(wkhtmltopdf_converter * c, const char * msg) {
 }
 
 /* Print the pdf*/
-bool printpdf(char * url, const unsigned char ** d ) {
-	bool statusbool = true;
+int printpdf(char * url, const unsigned char ** d ) {
+	int status = 0;
 	log_info("Pdf print started with url: %s", url);
 	wkhtmltopdf_global_settings * gs;
 	wkhtmltopdf_object_settings * os;
@@ -65,8 +65,6 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	 */
 	gs = wkhtmltopdf_create_global_settings();
 	/* We want the result to be storred in the file called test.pdf */
-	wkhtmltopdf_set_global_setting(gs, "out", "test.pdf");
-
 	wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
 	wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
 	/*
@@ -101,6 +99,7 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	 * they are added
 	 */
 	wkhtmltopdf_add_object(c, os, NULL);
+	err_sys("preconvet");
 
 	/* Perform the actual convertion */
 	if (!wkhtmltopdf_convert(c))
@@ -108,8 +107,13 @@ bool printpdf(char * url, const unsigned char ** d ) {
 		err_sys("ERROR PDF Converstionafail for url: %s", url);
 		/* Output possible http error code encountered */
 		err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
-		statusbool = false;
+		status = -1;
+	} else {
+		status = wkhtmltopdf_get_output(c, d);
+		err_sys("status = %d", status);
 	}
+	status = wkhtmltopdf_get_output(c, d);
+	err_sys("status = %d", status);
 
 	/* Destroy the converter object since we are done with it */
 	wkhtmltopdf_destroy_converter(c);
@@ -117,5 +121,5 @@ bool printpdf(char * url, const unsigned char ** d ) {
 	/* We will no longer be needing wkhtmltopdf funcionality */
 	wkhtmltopdf_deinit();
 
-	return statusbool;
+	return status;
 }
