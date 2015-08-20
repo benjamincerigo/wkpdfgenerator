@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <wkhtmltox/pdf.h>
 #include "../lib/common.h"
+const bool fileout = false;
 
 
 /* Print a message to stderr when an error occures */
@@ -62,6 +63,13 @@ int printpdf(char * url, const unsigned char ** d ) {
 	gs = wkhtmltopdf_create_global_settings();
 	/* We want the result to be storred in the file called test.pdf */
 	wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
+	if( fileout )
+	{
+		char outstr[16];
+		memset( &outstr , 0 , sizeof(outstr));
+		snprintf( outstr, 15, "test%d.pdf", getpid());
+		wkhtmltopdf_set_global_setting(gs, "out", outstr);
+	}
 	wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
 	/*
 	 * Create a input object settings object that is used to store settings
