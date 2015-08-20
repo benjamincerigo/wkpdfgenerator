@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
 #include <fcntl.h>

@@ -25,26 +25,22 @@
 #include <wkhtmltox/pdf.h>
 #include "../lib/common.h"
 
-/* Print out loading progress information */
-void progress_changed(wkhtmltopdf_converter * c, int p) {
-	printf("%3d%%\r",p);
-	fflush(stdout);
-}
-
-/* Print loading phase information */
-void phase_changed(wkhtmltopdf_converter * c) {
-	int phase = wkhtmltopdf_current_phase(c);
-	printf("%s\n", wkhtmltopdf_phase_description(c, phase));
-}
 
 /* Print a message to stderr when an error occures */
 void error(wkhtmltopdf_converter * c, const char * msg) {
-	fprintf(stderr, "Error: %s\n", msg);
+	err_sys("Error: %s for pid: %d", msg, getpid());
 }
 
 /* Print a message to stderr when a warning is issued */
 void warning(wkhtmltopdf_converter * c, const char * msg) {
-	fprintf(stderr, "Warning: %s\n", msg);
+	log_notice("Warning: %s for pid: %d", msg, getpid());
+}
+/* Print a message to stderr when a warning is issued */
+void progress_changed(wkhtmltopdf_converter * c, int p) {
+}
+void phase_changed(wkhtmltopdf_converter * c) {
+	int phase = wkhtmltopdf_current_phase(c);
+	log_info("Phase chaged %s for pid: %d", wkhtmltopdf_phase_description(c, phase), getpid());
 }
 
 /* Print the pdf*/
@@ -81,17 +77,16 @@ int printpdf(char * url, const unsigned char ** d ) {
 	/* Create the actual converter object used to convert the pages */
 	c = wkhtmltopdf_create_converter(gs);
 
-	/* Call the progress_changed function when progress changes */
-	wkhtmltopdf_set_progress_changed_callback(c, progress_changed);
-
-	/* Call the phase _changed function when the phase changes */
-	wkhtmltopdf_set_phase_changed_callback(c, phase_changed);
-
 	/* Call the error function when an error occures */
 	wkhtmltopdf_set_error_callback(c, error);
 
 	/* Call the warning function when a warning is issued */
 	wkhtmltopdf_set_warning_callback(c, warning);
+	/* Call the progress_changed function when progress changes */
+	wkhtmltopdf_set_progress_changed_callback(c, progress_changed);
+
+	/* Call the phase _changed function when the phase changes */
+	wkhtmltopdf_set_phase_changed_callback(c, phase_changed);
 
 	/*
 	 * Add the the settings object describing the qstring documentation page
@@ -99,7 +94,6 @@ int printpdf(char * url, const unsigned char ** d ) {
 	 * they are added
 	 */
 	wkhtmltopdf_add_object(c, os, NULL);
-	err_sys("preconvet");
 
 	/* Perform the actual convertion */
 	if (!wkhtmltopdf_convert(c))
@@ -109,11 +103,10 @@ int printpdf(char * url, const unsigned char ** d ) {
 		err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
 		status = -1;
 	} else {
+		log_info("doing else");
 		status = wkhtmltopdf_get_output(c, d);
 		err_sys("status = %d", status);
 	}
-	status = wkhtmltopdf_get_output(c, d);
-	err_sys("status = %d", status);
 
 	/* Destroy the converter object since we are done with it */
 	wkhtmltopdf_destroy_converter(c);

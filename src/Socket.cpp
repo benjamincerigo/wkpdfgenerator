@@ -115,7 +115,7 @@ bool Socket::send ( const std::string s ) const
 }
 bool Socket::send ( const unsigned char ** d, int len) const
 {
-    log_info("sending the buffer: %p, len: %d ", d, len);
+    log_info("sending the buffer: %p, len: %d pid: %d", d, len, getpid());
   int status = ::send ( m_sock, *d,  len , MSG_NOSIGNAL );
   if ( status == -1 )
     {
