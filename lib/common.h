@@ -37,3 +37,6 @@ void     log_notice(const char *, ...);
 
 typedef void Sigfunc(int);
 Sigfunc *Signal(int signo, Sigfunc *func);
+
+pid_t Fork(void);
+int daemon_init(const char *pname, int facility);
