@@ -7,6 +7,7 @@
 #include "pdf.h"
 
 const int bufsize = 2000;
+const int givenport = 30000;
 
 void sig_chld(int signo);
 
@@ -20,7 +21,7 @@ int main ( int argc, char **argv)
     try
     {
         // Create the socket
-        ServerSocket server ( 30000 );
+        ServerSocket server ( givenport );
         Signal(SIGCHLD, sig_chld); // kill the zombie children that are left after they exit
         while ( true )
         {
