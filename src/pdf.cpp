@@ -71,6 +71,10 @@ int printpdf(char * url, const unsigned char ** d ) {
 		wkhtmltopdf_set_global_setting(gs, "out", outstr);
 	}
 	wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
+	wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
+	wkhtmltopdf_set_global_setting(gs, "margin.bottom", "0cm");
+	wkhtmltopdf_set_global_setting(gs, "margin.left", "0cm");
+	wkhtmltopdf_set_global_setting(gs, "margin.right", "0cm");
 	/*
 	 * Create a input object settings object that is used to store settings
 	 * related to a input object, note again that control of this object is parsed to
