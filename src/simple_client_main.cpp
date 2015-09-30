@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
             if( argc > 1 && strcmp(argv[1], "oldreport") == 0){
                 client_socket << "https://secure.equidam.dev/pdfreport/pdfreport_all.php?uid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr\r\n";
             }else{
-              client_socket << "https://secure.equidam.dev/report/index.php\r\n";
+              client_socket << "https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true\r\n";
             }
             client_socket << "ENDOFFILE\r\n";
             while( reply.length() > 0 ){

@@ -83,7 +83,7 @@ int printpdf(char * url, const unsigned char ** d ) {
 	os = wkhtmltopdf_create_object_settings();
 	/* We want to convert to convert the qstring documentation page */
 	wkhtmltopdf_set_object_setting(os, "page", url);
-	wkhtmltopdf_set_object_setting(os, "load.jsdelay", "10000");
+	wkhtmltopdf_set_object_setting(os, "load.jsdelay", "30000");
 	wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false");
 
 	/* Create the actual converter object used to convert the pages */
