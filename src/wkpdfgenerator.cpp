@@ -2,6 +2,8 @@
 #include "BufferedLineReader.h"
 #include <stdio.h>
 #include <cstring> 
+#include <sys/types.h>
+#include <unistd.h>
 #include "Url.h" 
 #include "../lib/common.h"
 #include "pdf.h"
@@ -18,6 +20,7 @@ int main ( int argc, char **argv)
     daemon_init(argv[0], LOG_LOCAL1);
     // Logg starting of the server
     log_info("PDF wkhtmltopdf started");
+    chdir("/vagrant/reports");
     try
     {
         // Create the socket
@@ -50,7 +53,7 @@ int main ( int argc, char **argv)
                     char linecheck[ bufsize ]; // line buffer
                     char url[ bufsize ]; // url
                     int n, cnt = 0;
-                    const unsigned char * pdfdata;
+                    char pdfdata[16];
                     
                     
                     /* Read each line 
@@ -78,14 +81,16 @@ int main ( int argc, char **argv)
                     if( checkUrl( url , 2000 ) == true ){
                         int len;
                         data = "200 Success";
-                        len = printpdf( url, &pdfdata );
+                        len = printpdf( url, pdfdata );
                         log_info("len = %d", len);
-                        if( len <= 0)
+                        if( strlen( pdfdata ) <= 0)
                         {
+                            err_sys("ERROR PDF FOR FAILD for url: %s", url);
                             data = "500 Internal Server Error";
                         } else {
-                            log_info("sending the buffer");
-                             new_sock.send( &pdfdata, len );
+                            log_info("Sending the file: %s", pdfdata);
+                            new_sock << pdfdata;
+                            exit(0); 
                         }
                     } else {
                         // save and return the error
@@ -93,7 +98,7 @@ int main ( int argc, char **argv)
                         data = "401 Unauthorized";
                     }
                     new_sock << data;
-                    log_info("Success for child process: %d", getpid());
+                    log_info("Fail for child process: %d", getpid());
                     exit(0); // exit the child once the return is sent back
                 } catch ( SocketException &e ) {
                     // Socketexception of the child should be loged

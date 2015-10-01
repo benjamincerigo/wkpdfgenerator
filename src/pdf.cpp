@@ -45,86 +45,123 @@ void phase_changed(wkhtmltopdf_converter * c) {
 }
 
 /* Print the pdf*/
-int printpdf(char * url, const unsigned char ** d ) {
-	int status = 0;
-	log_info("Pdf print started with url: %s", url);
-	wkhtmltopdf_global_settings * gs;
-	wkhtmltopdf_object_settings * os;
-	wkhtmltopdf_converter * c;
-
-	/* Init wkhtmltopdf in graphics less mode */
-	wkhtmltopdf_init(false);
-
-	/*
-	 * Create a global settings object used to store options that are not
-	 * related to input objects, note that control of this object is parsed to
-	 * the converter later, which is then responsible for freeing it
-	 */
-	gs = wkhtmltopdf_create_global_settings();
-	/* We want the result to be storred in the file called test.pdf */
-	wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
-	if( fileout )
+int printpdf(char * url, char * d ) {
+	int fd[2];
+	pipe(fd);
+	pid_t pID = fork();
+	if (pID == 0)                // child
 	{
+		bool fileout = true;
 		char outstr[16];
-		memset( &outstr , 0 , sizeof(outstr));
-		snprintf( outstr, 15, "test%d.pdf", getpid());
-		wkhtmltopdf_set_global_setting(gs, "out", outstr);
-	}
-	wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
-	wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
-	wkhtmltopdf_set_global_setting(gs, "margin.bottom", "0cm");
-	wkhtmltopdf_set_global_setting(gs, "margin.left", "0cm");
-	wkhtmltopdf_set_global_setting(gs, "margin.right", "0cm");
-	/*
-	 * Create a input object settings object that is used to store settings
-	 * related to a input object, note again that control of this object is parsed to
-	 * the converter later, which is then responsible for freeing it
-	 */
-	os = wkhtmltopdf_create_object_settings();
-	/* We want to convert to convert the qstring documentation page */
-	wkhtmltopdf_set_object_setting(os, "page", url);
-	wkhtmltopdf_set_object_setting(os, "load.jsdelay", "30000");
-	wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false");
+		/* Child process closes up input side of pipe */
+		close(fd[0]);
+		// THis is the vfork that will do the actuall convert of the pdf beacuse if it is kill un exceptatly we can still return
+		log_info("Pdf print started with url: %s pid: %d", url, getpid());
+		wkhtmltopdf_global_settings * gs;
+		wkhtmltopdf_object_settings * os;
+		wkhtmltopdf_converter * c;
 
-	/* Create the actual converter object used to convert the pages */
-	c = wkhtmltopdf_create_converter(gs);
+		/* Init wkhtmltopdf in graphics less mode */
+		wkhtmltopdf_init(false);
 
-	/* Call the error function when an error occures */
-	wkhtmltopdf_set_error_callback(c, error);
+		/*
+		 * Create a global settings object used to store options that are not
+		 * related to input objects, note that control of this object is parsed to
+		 * the converter later, which is then responsible for freeing it
+		 */
+		gs = wkhtmltopdf_create_global_settings();
+		/* We want the result to be storred in the file called test.pdf */
+		wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
+		if( fileout )
+		{
+			memset( &outstr , 0 , sizeof(outstr));
+			snprintf( outstr, 15, "test%d.pdf", getpid());
+			wkhtmltopdf_set_global_setting(gs, "out", outstr);
+		}
+		wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
+		wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
+		wkhtmltopdf_set_global_setting(gs, "margin.bottom", "0cm");
+		wkhtmltopdf_set_global_setting(gs, "margin.left", "0cm");
+		wkhtmltopdf_set_global_setting(gs, "margin.right", "0cm");
+		/*
+		 * Create a input object settings object that is used to store settings
+		 * related to a input object, note again that control of this object is parsed to
+		 * the converter later, which is then responsible for freeing it
+		 */
+		os = wkhtmltopdf_create_object_settings();
+		/* We want to convert to convert the qstring documentation page */
+		wkhtmltopdf_set_object_setting(os, "page", url);
+		wkhtmltopdf_set_object_setting(os, "load.jsdelay", "30000");
+		wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false");
 
-	/* Call the warning function when a warning is issued */
-	wkhtmltopdf_set_warning_callback(c, warning);
-	/* Call the progress_changed function when progress changes */
-	wkhtmltopdf_set_progress_changed_callback(c, progress_changed);
+		/* Create the actual converter object used to convert the pages */
+		c = wkhtmltopdf_create_converter(gs);
 
-	/* Call the phase _changed function when the phase changes */
-	wkhtmltopdf_set_phase_changed_callback(c, phase_changed);
+		/* Call the error function when an error occures */
+		wkhtmltopdf_set_error_callback(c, error);
 
-	/*
-	 * Add the the settings object describing the qstring documentation page
-	 * to the list of pages to convert. Objects are converted in the order in which
-	 * they are added
-	 */
-	wkhtmltopdf_add_object(c, os, NULL);
+		/* Call the warning function when a warning is issued */
+		wkhtmltopdf_set_warning_callback(c, warning);
+		/* Call the progress_changed function when progress changes */
+		wkhtmltopdf_set_progress_changed_callback(c, progress_changed);
 
-	/* Perform the actual convertion */
-	if (!wkhtmltopdf_convert(c))
+		/* Call the phase _changed function when the phase changes */
+		wkhtmltopdf_set_phase_changed_callback(c, phase_changed);
+
+		/*
+		 * Add the the settings object describing the qstring documentation page
+		 * to the list of pages to convert. Objects are converted in the order in which
+		 * they are added
+		 */
+		wkhtmltopdf_add_object(c, os, NULL);
+
+		/* Perform the actual convertion */
+		if (!wkhtmltopdf_convert(c))
+		{
+			err_sys("ERROR PDF Converstionafail for url: %s", url);
+			/* Output possible http error code encountered */
+			err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
+			//len = -1;
+		} else {
+			log_info("SUCCESSFULL MADE REPORT for url: %s", url);
+			if( !fileout ){
+				//len = wkhtmltopdf_get_output(c, d);
+			}
+		}
+
+		/* Destroy the converter object since we are done with it */
+		wkhtmltopdf_destroy_converter(c);
+
+		/* We will no longer be needing wkhtmltopdf funcionality */
+		wkhtmltopdf_deinit();
+		/* Send "string" through the output side of pipe */
+		write(fd[1], outstr, sizeof( outstr ) );
+		exit(1);
+	} else if( pID < 0 )
 	{
-		err_sys("ERROR PDF Converstionafail for url: %s", url);
-		/* Output possible http error code encountered */
-		err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
-		status = -1;
+		err_sys("ERROR PDF FOR FAILD");
+		//status = -1; // Bcause there is an error to return
 	} else {
-		log_info("doing else");
-		status = wkhtmltopdf_get_output(c, d);
-		err_sys("status = %d", status);
+		int status;
+		/* Parent process closes up output side of pipe */
+		close(fd[1]);
+
+		log_info( "doing the wait" );
+		waitpid( pID,  &status , WNOHANG | WUNTRACED |WCONTINUED );
+		if (WIFEXITED(status)) {
+			log_info("exited, status=%d\n", WEXITSTATUS(status));
+		} else if (WIFSIGNALED(status)) {
+			log_info("killed by signal %d\n", WTERMSIG(status));
+		} else if (WIFSTOPPED(status)) {
+			log_info("stopped by signal %d\n", WSTOPSIG(status));
+		} else if (WIFCONTINUED(status)) {
+			log_info("continued\n");
+		}
+		/* Read in a string from the pipe */
+
+		read(fd[0], d, sizeof(d));
+		log_info("tmp file in parent: %s", d );
+		
 	}
-
-	/* Destroy the converter object since we are done with it */
-	wkhtmltopdf_destroy_converter(c);
-
-	/* We will no longer be needing wkhtmltopdf funcionality */
-	wkhtmltopdf_deinit();
-
-	return status;
+	return 1;
 }
