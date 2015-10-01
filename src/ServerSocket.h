@@ -16,6 +16,7 @@ class ServerSocket : public Socket
 
   const ServerSocket& operator << ( const std::string& ) const;
   const ServerSocket& send( const unsigned char ** d, int len) const;
+  bool sendFile( const char * filename) const;
   const ServerSocket& operator >> ( std::string& ) const;
 
   bool accept ( ServerSocket* );

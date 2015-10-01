@@ -45,14 +45,15 @@ void phase_changed(wkhtmltopdf_converter * c) {
 }
 
 /* Print the pdf*/
-int printpdf(char * url, char * d ) {
+int printpdf(char * url, char * d , const int length) {
 	int fd[2];
 	pipe(fd);
 	pid_t pID = fork();
 	if (pID == 0)                // child
 	{
 		bool fileout = true;
-		char outstr[16];
+		int sizeofname = 20;
+		char outstr[20];
 		/* Child process closes up input side of pipe */
 		close(fd[0]);
 		// THis is the vfork that will do the actuall convert of the pdf beacuse if it is kill un exceptatly we can still return
@@ -74,9 +75,15 @@ int printpdf(char * url, char * d ) {
 		wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
 		if( fileout )
 		{
+			char outstrreal[sizeofname];
 			memset( &outstr , 0 , sizeof(outstr));
-			snprintf( outstr, 15, "test%d.pdf", getpid());
-			wkhtmltopdf_set_global_setting(gs, "out", outstr);
+			snprintf( outstr, sizeofname, "test%d.pdf", getpid());
+			strncpy(outstrreal, outstr, sizeofname);
+			log_info( "filenamebefore %s", outstrreal );
+			log_info( "filenamebefore real %s", outstr );
+			wkhtmltopdf_set_global_setting(gs, "out", outstrreal);
+			log_info( "filenameafter %s", outstr );
+			log_info( "filenameafter real %s", outstrreal );
 		}
 		wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
 		wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
@@ -135,7 +142,7 @@ int printpdf(char * url, char * d ) {
 		/* We will no longer be needing wkhtmltopdf funcionality */
 		wkhtmltopdf_deinit();
 		/* Send "string" through the output side of pipe */
-		write(fd[1], outstr, sizeof( outstr ) );
+		write(fd[1], outstr, sizeofname);
 		exit(1);
 	} else if( pID < 0 )
 	{
@@ -159,7 +166,7 @@ int printpdf(char * url, char * d ) {
 		}
 		/* Read in a string from the pipe */
 
-		read(fd[0], d, sizeof(d));
+		read(fd[0], d, length);
 		log_info("tmp file in parent: %s", d );
 		
 	}

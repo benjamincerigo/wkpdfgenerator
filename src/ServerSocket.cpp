@@ -61,6 +61,10 @@ const ServerSocket& ServerSocket::send ( const unsigned char ** d, int len) cons
 
 }
 
+bool ServerSocket::sendFile( const char * filename  ) const
+{ 
+    return  Socket::sendFile( filename);
+}
 
 const ServerSocket& ServerSocket::operator >> ( std::string& s ) const
 {

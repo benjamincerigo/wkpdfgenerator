@@ -53,7 +53,8 @@ int main ( int argc, char **argv)
                     char linecheck[ bufsize ]; // line buffer
                     char url[ bufsize ]; // url
                     int n, cnt = 0;
-                    char pdfdata[16];
+                    int sizeofdata = 20;
+                    char pdfdata[sizeofdata];
                     
                     
                     /* Read each line 
@@ -80,17 +81,20 @@ int main ( int argc, char **argv)
                     log_info("Url found for pid: %d , url %s", getpid(), url);
                     if( checkUrl( url , 2000 ) == true ){
                         int len;
-                        data = "200 Success";
-                        len = printpdf( url, pdfdata );
+                        data = "500 Internal Server Error";
+                        len = printpdf( url, pdfdata , sizeofdata);
                         log_info("len = %d", len);
                         if( strlen( pdfdata ) <= 0)
                         {
                             err_sys("ERROR PDF FOR FAILD for url: %s", url);
                             data = "500 Internal Server Error";
                         } else {
-                            log_info("Sending the file: %s", pdfdata);
-                            new_sock << pdfdata;
+
+                           if( new_sock.sendFile( pdfdata )){
                             exit(0); 
+                           } else {
+                               data = "500 Internal Server Error";
+                           }
                         }
                     } else {
                         // save and return the error

@@ -2,6 +2,10 @@
 
 #include "Socket.h"
 #include "../lib/common.h"
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 Socket::Socket() :
   m_sock ( -1 )
@@ -113,6 +117,35 @@ bool Socket::send ( const std::string s ) const
       return true;
     }
 }
+bool Socket ::sendFile( const char * filename  ) const
+{ 
+    // Code for this found at http://tldp.org/LDP/LGNET/91/misc/tranter/server.c.txt
+    int fd;                    /* file descriptor for file to send */
+    struct stat stat_buf;      /* argument to fstat */
+    int rc;                    /* holds return code of system calls */
+    fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+      err_sys("unable to open '%s'", filename);
+      return false;
+    }
+    /* get the size of the file to be sent */
+    fstat(fd, &stat_buf);
+
+    /* copy file using sendfile */
+    off_t offset = 0;
+    log_info("Sending the file: %s", filename);
+    rc = sendfile (m_sock, fd, &offset, stat_buf.st_size);
+    if (rc == -1) {
+       err_sys("error from sendfile: %s\n", filename);
+      return false;
+    }
+    if (rc != stat_buf.st_size) {
+      err_sys( "incomplete transfer from sendfile: %d of %d bytes\n",rc,(int)stat_buf.st_size);
+      return false;
+    }
+    return true;
+}
+
 bool Socket::send ( const unsigned char ** d, int len) const
 {
     log_info("sending the buffer: %p, len: %d pid: %d", d, len, getpid());
