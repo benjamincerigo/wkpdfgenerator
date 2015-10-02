@@ -4,7 +4,6 @@
 #include "../lib/common.h"
 #include <sys/sendfile.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 Socket::Socket() :

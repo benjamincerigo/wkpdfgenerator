@@ -7,12 +7,16 @@
 #include "Url.h" 
 #include "../lib/common.h"
 #include "pdf.h"
+#include <sys/stat.h>
 
 const int bufsize = 2000;
 const int givenport = 30000;
 
 void sig_chld(int signo);
 
+#define BAD_REQUEST "400 Bad Request"
+#define SERVER_ERR "500 Internal Server Error"
+#define LOCALPATH "/vagrant/reports"
 int main ( int argc, char **argv)
 {
 
@@ -20,7 +24,12 @@ int main ( int argc, char **argv)
     daemon_init(argv[0], LOG_LOCAL1);
     // Logg starting of the server
     log_info("PDF wkhtmltopdf started");
-    chdir("/vagrant/reports");
+    if( chdir(LOCALPATH) != 0 ){
+        if( mkdir( LOCALPATH , S_IWUSR| S_IXUSR | S_IRUSR | S_IROTH) != 0){
+            err_sys( "cannot find or create the directory for reports" );
+            exit(-1);
+        }
+    }
     try
     {
         // Create the socket
@@ -46,17 +55,23 @@ int main ( int argc, char **argv)
                 /* CHILD ONLY */
                 try
                 {
-                    log_info("New child prcess started: %d", getpid());
+                    log_info("New child process started: %d", getpid());
                     server.~ServerSocket(); // close the listening socket for the child because it does not need it
 
                     std::string data; // Return data
                     char linecheck[ bufsize ]; // line buffer
                     char url[ bufsize ]; // url
-                    int n, cnt = 0;
-                    int sizeofdata = 20;
-                    char pdfdata[sizeofdata];
-                    
-                    
+                    int n, cnt = 0; /* to help with the readline */
+                    int sizeofdata = 300; /* size of the pdfdata */
+                    int qlen = 200; /* max size of query */
+                    char queryparams[qlen]; /* the query parameter to be used for the name of file */
+                    char pdfdata[sizeofdata]; /* the name of the file that will be passed arount */
+                    // clean the memory
+                    memset( queryparams, '\0', sizeof(char)*qlen );
+                    memset( pdfdata, '\0', sizeof(char)*sizeofdata );
+                    memset( url, '\0', sizeof(char)*bufsize );
+                    memset( linecheck, '\0', sizeof(char)*bufsize );
+                    data = BAD_REQUEST;
                     /* Read each line 
                      * Lines are read until ENDOFFILE is found
                      * Can also exit on exception of no end of file or timeout
@@ -69,40 +84,38 @@ int main ( int argc, char **argv)
                     {
                         cnt++;
                         // Looking for ENDOFFILE
-                        if( startsWith( linecheck , "ENDOFFILE" , 2000) ){
+                        if( startsWith( linecheck , "ENDOFFILE" , bufsize) ){
                             log_info("EOF recieved for pid: %d", getpid());
                             break;
                         } else {
                             // Copy the line into url
-                            strncpy( url, linecheck , 2000);
+                            strncpy( url, linecheck , bufsize);
                         }
                     }
                     // Check the url to see if it asecaable
                     log_info("Url found for pid: %d , url %s", getpid(), url);
-                    if( checkUrl( url , 2000 ) == true ){
+                    if( checkUrl( url , bufsize , queryparams, qlen) == true ){
                         int len;
-                        data = "500 Internal Server Error";
-                        len = printpdf( url, pdfdata , sizeofdata);
-                        log_info("len = %d", len);
-                        if( strlen( pdfdata ) <= 0)
-                        {
-                            err_sys("ERROR PDF FOR FAILD for url: %s", url);
-                            data = "500 Internal Server Error";
+                        data = SERVER_ERR;
+                        len = printpdf( url, pdfdata , sizeofdata, queryparams);
+                        if( strlen( pdfdata ) <= 0){
+                            err_sys("ERROR PDF FOR FAILD for url: %s: pdfdata: %d", url, strlen(pdfdata));
+                            data = SERVER_ERR;
                         } else {
-
+                            // THe file name is good so send the file
                            if( new_sock.sendFile( pdfdata )){
-                            exit(0); 
+                            exit(-1); 
                            } else {
-                               data = "500 Internal Server Error";
+                               data = SERVER_ERR;
                            }
                         }
                     } else {
                         // save and return the error
                         log_notice("NOTICE Url not authorsied pid: %d , url %s", getpid(), url);
-                        data = "401 Unauthorized";
+                        data = BAD_REQUEST;
                     }
                     new_sock << data;
-                    log_info("Fail for child process: %d", getpid());
+                    log_info("Fail for child process: %d served message: %s", getpid(), data.c_str());
                     exit(0); // exit the child once the return is sent back
                 } catch ( SocketException &e ) {
                     // Socketexception of the child should be loged

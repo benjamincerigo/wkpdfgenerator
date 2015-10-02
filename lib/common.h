@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <sys/types.h>
 #include "../src/SocketTimeOut.h"
 #include "../src/SocketException.h"
 #include "config.h"

@@ -20,8 +20,6 @@
  */
 
 /* This is a simple example program showing how to use the wkhtmltopdf c bindings */
-#include <stdbool.h>
-#include <stdio.h>
 #include <wkhtmltox/pdf.h>
 #include "../lib/common.h"
 const bool fileout = false;
@@ -45,15 +43,15 @@ void phase_changed(wkhtmltopdf_converter * c) {
 }
 
 /* Print the pdf*/
-int printpdf(char * url, char * d , const int length) {
+int printpdf(char * url, char * d , const int length, char * query) {
 	int fd[2];
 	pipe(fd);
 	pid_t pID = fork();
 	if (pID == 0)                // child
 	{
 		bool fileout = true;
-		int sizeofname = 20;
-		char outstr[20];
+		int sizeofname = length;
+		char outstr[sizeofname];
 		/* Child process closes up input side of pipe */
 		close(fd[0]);
 		// THis is the vfork that will do the actuall convert of the pdf beacuse if it is kill un exceptatly we can still return
@@ -75,15 +73,14 @@ int printpdf(char * url, char * d , const int length) {
 		wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
 		if( fileout )
 		{
-			char outstrreal[sizeofname];
+			time_t current_time;
+			current_time = time(NULL);
+			char s[20]; /* strlen("2009-08-10 18:17:54") + 1 */
+			strftime(s, 20, "%Y-%m-%d-%H:%M:%S", localtime(&current_time));
 			memset( &outstr , 0 , sizeof(outstr));
-			snprintf( outstr, sizeofname, "test%d.pdf", getpid());
-			strncpy(outstrreal, outstr, sizeofname);
-			log_info( "filenamebefore %s", outstrreal );
-			log_info( "filenamebefore real %s", outstr );
-			wkhtmltopdf_set_global_setting(gs, "out", outstrreal);
-			log_info( "filenameafter %s", outstr );
-			log_info( "filenameafter real %s", outstrreal );
+			snprintf( outstr, sizeofname, "EquidamReport-%s%s-%d.pdf", query, s, getpid());
+			log_info( "Filename Created %s", outstr );
+			wkhtmltopdf_set_global_setting(gs, "out", outstr);
 		}
 		wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
 		wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
@@ -153,22 +150,20 @@ int printpdf(char * url, char * d , const int length) {
 		/* Parent process closes up output side of pipe */
 		close(fd[1]);
 
-		log_info( "doing the wait" );
+		// Parent is waiting fo the child to finish
 		waitpid( pID,  &status , WNOHANG | WUNTRACED |WCONTINUED );
 		if (WIFEXITED(status)) {
-			log_info("exited, status=%d\n", WEXITSTATUS(status));
+			log_info("Child exited, status=%d\n", WEXITSTATUS(status));
 		} else if (WIFSIGNALED(status)) {
-			log_info("killed by signal %d\n", WTERMSIG(status));
+			log_info("Child killed by signal %d\n", WTERMSIG(status));
 		} else if (WIFSTOPPED(status)) {
-			log_info("stopped by signal %d\n", WSTOPSIG(status));
+			log_info("Child stopped by signal %d\n", WSTOPSIG(status));
 		} else if (WIFCONTINUED(status)) {
-			log_info("continued\n");
+			log_info("Child continued\n");
 		}
 		/* Read in a string from the pipe */
-
 		read(fd[0], d, length);
-		log_info("tmp file in parent: %s", d );
-		
+		log_info("Received name from pdf Generator process: %s", d );
 	}
 	return 1;
 }
