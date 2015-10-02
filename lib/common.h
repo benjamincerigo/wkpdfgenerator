@@ -28,6 +28,9 @@
 #ifndef MAXRECV
 #define MAXRECV 500
 #endif
+#define BAD_REQUEST "400 Bad Request"
+#define SERVER_ERR "500 Internal Server Error"
+#define KILLPRINTERTEST "KILLPRINTREQUEST"
 void     err_dump(const char *, ...);
 void     err_msg(const char *, ...);
 void     err_quit(const char *, ...);

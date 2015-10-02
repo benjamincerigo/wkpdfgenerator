@@ -40,4 +40,5 @@ Try the make
 cd /vagrant/reports/; echo -e 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true\r\nENDOFFILE\r\n' | nc 127.0.0.1 30000 > testnewjava.pdf
 
 wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
+wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=101&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
 

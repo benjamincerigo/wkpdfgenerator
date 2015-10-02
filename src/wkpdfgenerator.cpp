@@ -14,8 +14,6 @@ const int givenport = 30000;
 
 void sig_chld(int signo);
 
-#define BAD_REQUEST "400 Bad Request"
-#define SERVER_ERR "500 Internal Server Error"
 #define LOCALPATH "/vagrant/reports"
 int main ( int argc, char **argv)
 {
@@ -99,8 +97,11 @@ int main ( int argc, char **argv)
                         data = SERVER_ERR;
                         len = printpdf( url, pdfdata , sizeofdata, queryparams);
                         if( strlen( pdfdata ) <= 0){
-                            err_sys("ERROR PDF FOR FAILD for url: %s: pdfdata: %d", url, strlen(pdfdata));
+                            err_sys("ERROR PDF FOR FAILD INTERNAL IN PRINTER for url: %s: pdfdata: %d", url, strlen(pdfdata));
                             data = SERVER_ERR;
+                        } else if( strcmp( BAD_REQUEST , pdfdata) == 0){
+                            err_sys("ERROR PDF FOR FAILD BAD REQUEST FROM PRINTER for url: %s: pdfdata: %d", url, strlen(pdfdata));
+                            data = BAD_REQUEST;
                         } else {
                             // THe file name is good so send the file
                            if( new_sock.sendFile( pdfdata )){

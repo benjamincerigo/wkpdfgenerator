@@ -119,14 +119,27 @@ int printpdf(char * url, char * d , const int length, char * query) {
 		 */
 		wkhtmltopdf_add_object(c, os, NULL);
 
+		// Special test case
+		if( strcmp( KILLPRINTERTEST, url ) == 0){
+			exit(-1);
+		}
 		/* Perform the actual convertion */
-		if (!wkhtmltopdf_convert(c))
+		if (wkhtmltopdf_convert(c) != 1)
 		{
 			err_sys("ERROR PDF Converstionafail for url: %s", url);
 			/* Output possible http error code encountered */
-			err_sys("httpErrorCode: %d\n", wkhtmltopdf_http_error_code(c));
+			err_sys("httpErrorCode: %d", wkhtmltopdf_http_error_code(c) );
+			exit(0);
 			//len = -1;
-		} else {
+		} else if( wkhtmltopdf_http_error_code(c) != 0){
+			err_sys("ERROR PDF Converstionafail for url: %s", url);
+			/* Output possible http error code encountered */
+			err_sys("HTTP ERROR CODE: %d",wkhtmltopdf_http_error_code(c)  );
+			char mes[] = BAD_REQUEST; 
+			write(fd[1], mes, sizeofname); // BAD request is wirten so that the 400 is sent back
+			exit(0);
+			
+		}else {
 			log_info("SUCCESSFULL MADE REPORT for url: %s", url);
 			if( !fileout ){
 				//len = wkhtmltopdf_get_output(c, d);

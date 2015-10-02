@@ -21,6 +21,10 @@ bool checkUrl( char * url, int len , char * query, int qlen)
         "https://secure.equidam.dev", 
         "https://erasmus.equidam.com"
     };
+    // Special test case
+    if( strcmp( KILLPRINTERTEST, url ) == 0){
+        return true;
+    }
 
     found = getQueryParams( url, query, qlen);
     log_info("Found Query is: %s", query );
