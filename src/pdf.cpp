@@ -78,7 +78,7 @@ int printpdf(char * url, char * d , const int length, char * query) {
 			char s[20]; /* strlen("2009-08-10 18:17:54") + 1 */
 			strftime(s, 20, "%Y-%m-%d-%H:%M:%S", localtime(&current_time));
 			memset( &outstr , 0 , sizeof(outstr));
-			snprintf( outstr, sizeofname, "EquidamReport-%s%s-%d.pdf", query, s, getpid());
+			snprintf( outstr, sizeofname, "EquidamReport-%s-%s%d.pdf", s, query, getpid());
 			log_info( "Filename Created %s", outstr );
 			wkhtmltopdf_set_global_setting(gs, "out", outstr);
 		}

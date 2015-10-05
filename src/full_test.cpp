@@ -45,14 +45,18 @@ int main (int argc, char *argv[])
         log_info("Report made for the uid 2, cid 6, aid 2 must be checked");
     } catch ( SocketException& e )
     {
-       err_sys( "error on count: %d", count ); 
+
+       char ret[1000];
+       size_t s = 1000;
+       e.returnMessage( ret , s );
+       err_sys( "error on count: %d Message: %s", count , ret); 
     }
     return 0;
 }
 
 bool makeRequest( char * url , char * exReturn ){
     ClientSocket client_socket ( "localhost", 30000 );
-    std::string reply = "eof";
+    std::string reply = "ENDOFFILE";
     client_socket << url;
     client_socket << "ENDOFFILE\r\n";
     while( reply.length() > 0 ){
@@ -61,9 +65,11 @@ bool makeRequest( char * url , char * exReturn ){
     if( strcmp( "pdf", exReturn) == 0 ){
         return true;
     }
+    fprintf( stdout, "expect: %s", exReturn );
+    fprintf( stdout, "reply: %s", reply.c_str() );
     if( strcmp( exReturn, reply.c_str() ) != 0){
         char c[300];
-        snprintf( c, 300, "%s %d", "not corrcect" , errno);
+        snprintf( c, 300, "%s %d returned: %s", "not corrcect" , errno, reply.c_str());
         throw SocketException ( 500 , c);
         return false;
     }
