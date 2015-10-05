@@ -92,6 +92,7 @@ int BufferedLineReader::internal_read( char *ptr )
     *ptr = *read_ptr++;
     return(1);
 }
+// Debuging function
 void BufferedLineReader::helplog( int pos )
 {
     syslog( 7 , "pos %d", pos);

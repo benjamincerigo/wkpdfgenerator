@@ -14,15 +14,17 @@ const int givenport = 30000;
 
 void sig_chld(int signo);
 
-#define LOCALPATH "/vagrant/reports"
+#define LOCALPATH "/vagrant/reports" /* CUrrenct the only directory where the reports are stored */
 int main ( int argc, char **argv)
 {
 
     pid_t pid;
-    daemon_init(argv[0], LOG_LOCAL1);
-    // Logg starting of the server
+    daemon_init(argv[0], LOG_LOCAL1); // Detach from the current process. 
+    // Log starting of the server
     log_info("PDF wkhtmltopdf started");
+    /* Move to the Correct directory to save the reports*/
     if( chdir(LOCALPATH) != 0 ){
+        // Create if not there
         if( mkdir( LOCALPATH , S_IWUSR| S_IXUSR | S_IRUSR | S_IROTH) != 0){
             err_sys( "cannot find or create the directory for reports" );
             exit(-1);
@@ -32,7 +34,7 @@ int main ( int argc, char **argv)
     {
         // Create the socket
         ServerSocket server ( givenport );
-        Signal(SIGCHLD, sig_chld); // kill the zombie children that are left after they exit
+        Signal(SIGCHLD, sig_chld); // Initial the handler to kill the zombie children that are left after they exit !IMPORTANT to do
         while ( true )
         {
             /* New socket created for each connection */
@@ -49,12 +51,13 @@ int main ( int argc, char **argv)
                 }
             }
 
+            /* THE REQUEST IS THEN DEALT BY THE CHILD */
             if( (pid = fork()) == 0) { /* Create the fork to process the request*/
                 /* CHILD ONLY */
                 try
                 {
                     log_info("New child process started: %d", getpid());
-                    server.~ServerSocket(); // close the listening socket for the child because it does not need it
+                    server.~ServerSocket(); // close the listening socket of the parent for the child because it does not need it
 
                     std::string data; // Return data
                     char linecheck[ bufsize ]; // line buffer
@@ -69,13 +72,11 @@ int main ( int argc, char **argv)
                     memset( pdfdata, '\0', sizeof(char)*sizeofdata );
                     memset( url, '\0', sizeof(char)*bufsize );
                     memset( linecheck, '\0', sizeof(char)*bufsize );
-                    data = BAD_REQUEST;
+                    data = BAD_REQUEST; /* Deafult data */
                     /* Read each line 
                      * Lines are read until ENDOFFILE is found
                      * Can also exit on exception of no end of file or timeout
-                     *
                      * LAST line found will be url
-                     * 
                      */
                     BufferedLineReader blr = BufferedLineReader( new_sock );
                     while((n = blr.readLine( linecheck , bufsize )) > 0 )
@@ -90,16 +91,19 @@ int main ( int argc, char **argv)
                             strncpy( url, linecheck , bufsize);
                         }
                     }
-                    // Check the url to see if it asecaable
                     log_info("Url found for pid: %d , url %s", getpid(), url);
+                
+                    // Check the url to see if it correct. 
                     if( checkUrl( url , bufsize , queryparams, qlen) == true ){
                         int len;
                         data = SERVER_ERR;
                         len = printpdf( url, pdfdata , sizeofdata, queryparams);
                         if( strlen( pdfdata ) <= 0){
+                            // The len of the given pdf data is empty this means that there was an internal error with the printing
                             err_sys("ERROR PDF FOR FAILD INTERNAL IN PRINTER for url: %s: pdfdata: %d", url, strlen(pdfdata));
-                            data = SERVER_ERR;
+                            data = SERVER_ERR; // Return the server error
                         } else if( strcmp( BAD_REQUEST , pdfdata) == 0){
+                            // This means that there hsa a HTTP Error when the wkhtmltopdf retrieved the data
                             err_sys("ERROR PDF FOR FAILD BAD REQUEST FROM PRINTER for url: %s: pdfdata: %d", url, strlen(pdfdata));
                             data = BAD_REQUEST;
                         } else {
@@ -144,7 +148,6 @@ int main ( int argc, char **argv)
     }
     return 0;
 }
-
 /*
  * This Funciton is a callback that will kill the zombie when the child process has ended
  */

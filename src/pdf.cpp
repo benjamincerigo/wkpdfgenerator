@@ -44,45 +44,49 @@ void phase_changed(wkhtmltopdf_converter * c) {
 
 /* Print the pdf*/
 int printpdf(char * url, char * d , const int length, char * query) {
-	int fd[2];
-	pipe(fd);
+	int fd[2]; /* This is the pipe that the child uses to send the pdf name to the parent */
+	pipe(fd); // open the pipe for the child and parent
 	pid_t pID = fork();
+	/* A child is created to handle the creation because if there is a problem in the printing the process will just kill
+	 *
+	 * As such we still want to serve the error if there was a problem
+	 */
 	if (pID == 0)                // child
 	{
-		bool fileout = true;
-		int sizeofname = length;
-		char outstr[sizeofname];
+		bool fileout = true; /* Save the pdf into a file */
+		int sizeofname = length; /* the length of the name */
+		char outstr[sizeofname]; /* the buffer to hold the name of the pdf */
 		/* Child process closes up input side of pipe */
-		close(fd[0]);
-		// THis is the vfork that will do the actuall convert of the pdf beacuse if it is kill un exceptatly we can still return
+		close(fd[0]); 
 		log_info("Pdf print started with url: %s pid: %d", url, getpid());
-		wkhtmltopdf_global_settings * gs;
-		wkhtmltopdf_object_settings * os;
+
+		wkhtmltopdf_global_settings * gs; /* The golbal settings for the wkhtmltopdf */
+		wkhtmltopdf_object_settings * os; /* Object settings for the wkhtmltopdf*/
 		wkhtmltopdf_converter * c;
 
 		/* Init wkhtmltopdf in graphics less mode */
 		wkhtmltopdf_init(false);
-
 		/*
 		 * Create a global settings object used to store options that are not
 		 * related to input objects, note that control of this object is parsed to
 		 * the converter later, which is then responsible for freeing it
 		 */
 		gs = wkhtmltopdf_create_global_settings();
-		/* We want the result to be storred in the file called test.pdf */
 		wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar");
 		if( fileout )
 		{
+			/* The file name is EquidamReport-Date-uid-cid-(aid if given)-pid.pdf*/
 			time_t current_time;
 			current_time = time(NULL);
-			char s[20]; /* strlen("2009-08-10 18:17:54") + 1 */
+			char s[20]; /* strlen("2009-08-1018:17:54") + 1 */
 			strftime(s, 20, "%Y-%m-%d-%H:%M:%S", localtime(&current_time));
 			memset( &outstr , 0 , sizeof(outstr));
 			snprintf( outstr, sizeofname, "EquidamReport-%s-%s%d.pdf", s, query, getpid());
 			log_info( "Filename Created %s", outstr );
 			wkhtmltopdf_set_global_setting(gs, "out", outstr);
 		}
-		wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true");
+		wkhtmltopdf_set_global_setting(gs, "web.enableJavascript", "true"); // for the anugalr report
+		// NO margin as the css will do that if needs be
 		wkhtmltopdf_set_global_setting(gs, "margin.top", "0cm");
 		wkhtmltopdf_set_global_setting(gs, "margin.bottom", "0cm");
 		wkhtmltopdf_set_global_setting(gs, "margin.left", "0cm");
@@ -94,9 +98,9 @@ int printpdf(char * url, char * d , const int length, char * query) {
 		 */
 		os = wkhtmltopdf_create_object_settings();
 		/* We want to convert to convert the qstring documentation page */
-		wkhtmltopdf_set_object_setting(os, "page", url);
-		wkhtmltopdf_set_object_setting(os, "load.jsdelay", "30000");
-		wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false");
+		wkhtmltopdf_set_object_setting(os, "page", url); // url 
+		wkhtmltopdf_set_object_setting(os, "load.jsdelay", "30000"); // Currently will not take more the 30 seconds
+		wkhtmltopdf_set_object_setting(os, "load.stopSlowScript", "false"); // !IMPORANT so that the fact that the angualr and dev express is slow
 
 		/* Create the actual converter object used to convert the pages */
 		c = wkhtmltopdf_create_converter(gs);
@@ -138,32 +142,29 @@ int printpdf(char * url, char * d , const int length, char * query) {
 			char mes[] = BAD_REQUEST; 
 			write(fd[1], mes, sizeofname); // BAD request is wirten so that the 400 is sent back
 			exit(0);
-			
 		}else {
 			log_info("SUCCESSFULL MADE REPORT for url: %s", url);
 			if( !fileout ){
-				//len = wkhtmltopdf_get_output(c, d);
+				//len = wkhtmltopdf_get_output(c, d); // THis is comment due to the fact that if you are ot using a file you need to write to the buffer however we are not doing this
 			}
 		}
-
 		/* Destroy the converter object since we are done with it */
 		wkhtmltopdf_destroy_converter(c);
 
 		/* We will no longer be needing wkhtmltopdf funcionality */
 		wkhtmltopdf_deinit();
-		/* Send "string" through the output side of pipe */
+		/* Send name of the report through the output side of pipe */
 		write(fd[1], outstr, sizeofname);
 		exit(1);
 	} else if( pID < 0 )
 	{
 		err_sys("ERROR PDF FOR FAILD");
-		//status = -1; // Bcause there is an error to return
+		return 1; // The pdfdata will show the error
 	} else {
 		int status;
 		/* Parent process closes up output side of pipe */
 		close(fd[1]);
-
-		// Parent is waiting fo the child to finish
+		// Parent is waiting for the child to finish
 		waitpid( pID,  &status , WNOHANG | WUNTRACED |WCONTINUED );
 		if (WIFEXITED(status)) {
 			log_info("Child exited, status=%d\n", WEXITSTATUS(status));

@@ -1,4 +1,8 @@
-Basic socket and client made in cpp
+This is the Repository for the equidam report printer. 
+The full document for the printer is in Doumentation.md
+
+
+INSTALL
 Must have wkhtmltopdf installed 
 
 install wkhtmltopdf:
@@ -14,18 +18,19 @@ sudo service rsyslog restart
 do:
 make
 
-run:
+RUN
 cd ./bin
 ./wkpdfgenerator
 
 
-test:
+TEST:
 // Test the report generator for https://secure.equidam.dev/report/index.php
 ./client 
 // Test the report generator for https://secure.equidam.dev/pdfreport/pdfreport_all.php?uid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr
 ./client oldreport
 // Test the timeout of the socket 
 ./timeouttest
+// Currently because of memery problems the full test does not work
 
 A test message response will be shown that is the string version of the pdf
 This pdf is corutped by the trasfer in the client but this is not important for the final version
@@ -35,10 +40,14 @@ view log in
 
 The process will be named ./wkpdfgenerator
 ps -x  -o pid,ppid,tty,stat,args,wchan
+ps -aux | grep wk
 
-Try the make
+AUXALLY TES COMMANDS -- Need to be sshed into the machince
+// This is the command to try the server with netcat. 
 cd /vagrant/reports/; echo -e 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true\r\nENDOFFILE\r\n' | nc 127.0.0.1 30000 > testnewjava.pdf
 
+
+// If you want to test just the wkhtmltopdf and not the equidam server
 wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
 wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=101&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
 
