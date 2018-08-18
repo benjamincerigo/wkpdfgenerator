@@ -7,10 +7,10 @@ LDFLAGS= -lwkhtmltox -Wall -ansi -pedantic -ggdb
 BIN = bin
 vpath %.cpp src
 vpath %.cpp lib
-SOURCE_FILES = wkpdfgenerator.cpp Socket.cpp ServerSocket.cpp testqueryget.cpp full_test.cpp ClientSocket.cpp full_test.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp signal.cpp error.cpp Url.cpp pdf.cpp daemon_init.cpp wrapunix.cpp
+SOURCE_FILES = wkpdfgenerator.cpp Socket.cpp ServerSocket.cpp testqueryget.cpp ClientSocket.cpp full_test.cpp simple_client_main.cpp BufferedLineReader.cpp SocketException.cpp signal.cpp error.cpp Url.cpp pdf.cpp daemon_init.cpp wrapunix.cpp
 OBJ=$(BIN)/obj
 
-wkpdfgenerator_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o $(OBJ)/wkpdfgenerator.o bin/obj/SocketException.o bin/obj/signal.o bin/obj/error.o bin/obj/Url.o bin/obj/pdf.o /usr/local/lib/libwkhtmltox.so.0.12.2 $(OBJ)/daemon_init.o $(OBJ)/wrapunix.o
+wkpdfgenerator_objects = bin/obj/ServerSocket.o bin/obj/Socket.o bin/obj/BufferedLineReader.o $(OBJ)/wkpdfgenerator.o bin/obj/SocketException.o bin/obj/signal.o bin/obj/error.o bin/obj/Url.o bin/obj/pdf.o /usr/local/lib/libwkhtmltox.so.0.12.5 $(OBJ)/daemon_init.o $(OBJ)/wrapunix.o
 simple_client_objects = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o bin/obj/error.o
 full_test_objects = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o bin/obj/error.o
 timeout_objs = bin/obj/ClientSocket.o bin/obj/Socket.o bin/obj/simple_client_main.o bin/obj/error.o

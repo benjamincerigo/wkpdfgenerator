@@ -14,10 +14,11 @@
  */
 bool checkUrl( char * url, int len , char * query, int qlen)
 {
-    const int numofchecks = 5;
+    const int numofchecks = 6;
     bool found;
     // Legitimate urls
     const char check[numofchecks][30] = {
+        "https://www.google.nl",
         "https://www.equidam.com",
         "https://secure.equidam.com", 
         "https://badger.equidam.com", 
@@ -31,9 +32,9 @@ bool checkUrl( char * url, int len , char * query, int qlen)
     // Get the query params for the name of the pdf file
     found = getQueryParams( url, query, qlen);
     log_info("Found Query is: %s", query );
-    if( found == false ){
-        return false;
-    }
+    // if( found == false ){
+    //     return false;
+    // }
     for( int i = 0; i < numofchecks; i++ ){
         if( (startsWith( url , check[i] , len)) == true) 
             return true;

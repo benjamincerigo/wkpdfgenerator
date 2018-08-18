@@ -1,7 +1,7 @@
 #!/bin/bash
 MY_PATH="`dirname \"$0\"`"              # relative
 MY_PATH="`( cd \"$MY_PATH\" && pwd )`"  # absolutized and normalized
-MY_PATH="/vagrant/wkpdfgenerator"
+MY_PATH="/wkpdfgenerator"
 if [ -z "$MY_PATH" ] ; then
     # error; for some reason, the path is not accessible
     # to the script (e.g. permissions re-evaled after suid)
@@ -30,6 +30,7 @@ else
 fi
 
 cd $MY_PATH
+mkdir -p ./reports
 make
 cd ./bin
 if [[ -n $(ldconfig -p | grep wkhtmltox) ]]; then

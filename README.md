@@ -1,53 +1,25 @@
+#PDF printer for complext javacscript rendering files
+
 This is the Repository for the equidam report printer. 
 The full document for the printer is in Doumentation.md
 
-
-INSTALL
-Must have wkhtmltopdf installed 
-
-install wkhtmltopdf:
-sudo apt-get update
-sudo apt-get install openssl build-essential xorg libssl-dev xfonts-75dpi -y
-wget -P /tmp http://download.gna.org/wkhtmltopdf/0.12/0.12.2/wkhtmltox-0.12.2_linux-trusty-amd64.deb
-dpkg -i /tmp/wkhtmltox-0.12.2_linux-trusty-amd64.deb
-
-set up the loging file:
-sudo cp 10-wkpdfgenerator.conf /etc/rsyslog.d/
-sudo service rsyslog restart
-
-do:
-make
-
-RUN
-cd ./bin
-./wkpdfgenerator
+## Get up and running
 
 
-TEST:
-// Test the report generator for https://secure.equidam.dev/report/index.php
-./client 
-// Test the report generator for https://secure.equidam.dev/pdfreport/pdfreport_all.php?uid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr
-./client oldreport
-// Test the timeout of the socket 
-./timeouttest
-// Currently because of memery problems the full test does not work
+##Testing 
+The ./client binary will gererate a pdf for this the url https://secure.equidam.dev/report/index.php.
+
+./timeouttest will test the timeout of the server. Currently because of memory problems the full test does not work
 
 A test message response will be shown that is the string version of the pdf
 This pdf is corutped by the trasfer in the client but this is not important for the final version
 
-view log in 
+wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'url' testwk.pdf
+
+## Logs
 /var/log/wkpdfgenerator.log
 
 The process will be named ./wkpdfgenerator
 ps -x  -o pid,ppid,tty,stat,args,wchan
 ps -aux | grep wk
-
-AUXALLY TES COMMANDS -- Need to be sshed into the machince
-// This is the command to try the server with netcat. 
-cd /vagrant/reports/; echo -e 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true\r\nENDOFFILE\r\n' | nc 127.0.0.1 30000 > testnewjava.pdf
-
-
-// If you want to test just the wkhtmltopdf and not the equidam server
-wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=100&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
-wkhtmltopdf --no-stop-slow-scripts --javascript-delay 30000 'https://secure.equidam.dev/report/index.php?uid=101&cid=100&t=ahrgF4BEtQevm3ZzkpJ5YNUxBS7kRKkr&pdf=true' testwk.pdf
 

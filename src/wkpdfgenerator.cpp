@@ -14,12 +14,12 @@ const int givenport = 30000;
 
 void sig_chld(int signo);
 
-#define LOCALPATH "/vagrant/reports" /* CUrrenct the only directory where the reports are stored */
+#define LOCALPATH "/wkpdfgenerator/reports" /* CUrrenct the only directory where the reports are stored */
 int main ( int argc, char **argv)
 {
 
     pid_t pid;
-    daemon_init(argv[0], LOG_LOCAL1); // Detach from the current process. 
+    // daemon_init(argv[0], LOG_LOCAL1); // Detach from the current process. 
     // Log starting of the server
     log_info("PDF wkhtmltopdf started");
     /* Move to the Correct directory to save the reports*/
