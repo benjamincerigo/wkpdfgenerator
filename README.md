@@ -1,4 +1,4 @@
-#PDF printer for complext javacscript rendering files
+# PDF printer for complext javacscript rendering files
 
 This is the Repository for the equidam report printer. 
 
