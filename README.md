@@ -1,8 +1,8 @@
-# PDF printer for complext javacscript rendering files
+# PDF printer for complex javacscript rendering files
 
-This is the Repository for the equidam report printer. 
+This is the repository for the Equidam report printer. 
 
-The full documentation for the printer is in [Doumentation.md](Documentation.md)
+The full documentation for the printer is found in the file [Documentation.md](Documentation.md)
 
 
 ## Get up and running
@@ -15,7 +15,7 @@ docker-compose exec app bash
 ./bin/client
 ```
 
-Once the job is finished there should be a pdf file in the reports directory
+Once the job is finished there should be a PDF file in the reports directory.
 
 ## Logs
 /var/log/wkpdfgenerator.log
