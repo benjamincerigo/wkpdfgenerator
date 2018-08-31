@@ -1,6 +1,6 @@
-# PDF printer for complex javacscript rendering files
+# PDF printer for complex web pages that rely on Javascript to create final html
 
-This is the repository for the Equidam report printer. 
+This is the repository for that was build for the [Equidam](htts://www.equidam.com) report printer. 
 
 The full documentation for the printer is found in the file [Documentation.md](Documentation.md)
 
